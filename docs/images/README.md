@@ -1,10 +1,17 @@
 # Screenshots for README
 
-Add PNG/WebP files here (do **not** include production data or PII):
+Committed assets (API Key fields must stay redacted / empty):
 
-- `login.png` — login page
-- `editor.png` — content editor + AI
+| File | Page |
+| --- | --- |
+| `layouts.png` | Template editor |
+| `article-editor.png` | Article HTML editor + AI enhance |
+| `ai-assistant.png` | AI assistant drawer |
+| `ai-providers.png` | AI provider settings (**key redacted**) |
+
+Still welcome:
+
+- `login.png` — login
+- `dashboard.png` / `sites.png` — workbench & sites
+- `categories.png` — category tree / list
 - `publish.png` — static publish
-- `notifications.png` — notification center
-
-Then uncomment the screenshot section in `README.md` / `README.zh-CN.md`.

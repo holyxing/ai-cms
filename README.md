@@ -115,13 +115,31 @@ Agent notes for coding assistants: [AGENTS.md](./AGENTS.md)
 
 ## Screenshots
 
-Add images under `docs/images/` (see that folder’s README), then link them here:
+### Layout / template editor
 
-<!--
-![Login](./docs/images/login.png)
-![Editor](./docs/images/editor.png)
-![Publish](./docs/images/publish.png)
--->
+![Layout template editor](./docs/images/layouts.png)
+
+HTML templates with `HY_*` tags, versioning, asset deps, and site/category/detail scopes.
+
+### Article HTML editor + AI enhance
+
+![Article HTML editor](./docs/images/article-editor.png)
+
+Source editing with validation, formatting toolbar, and AI actions (style cleanup, polish, image localization).
+
+### AI assistant
+
+![AI assistant](./docs/images/ai-assistant.png)
+
+Context-aware quick actions for articles, templates, and general chat.
+
+### AI providers (bring your own key)
+
+![AI providers settings](./docs/images/ai-providers.png)
+
+Configure MiniMax / OpenAI / Anthropic / Ollama. **API keys stay on your server — never commit them.**
+
+> More screenshots (login, sites, categories, publish) welcome via PR — drop files under `docs/images/`.
 
 ---
 

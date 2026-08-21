@@ -108,7 +108,31 @@ FastAPI · PostgreSQL · Redis · Celery · MinIO · React · Vite · Astro · D
 
 ## 截图
 
-请将截图放到 `docs/images/`（勿包含生产数据），并在 README 中引用。
+### 模板编辑
+
+![模板编辑](./docs/images/layouts.png)
+
+`HY_*` 标签、版本、资源依赖，覆盖站点 / 栏目 / 详情等作用域。
+
+### 文章 HTML 编辑 + AI 增强
+
+![文章编辑器](./docs/images/article-editor.png)
+
+源码编辑、合法性校验、格式工具栏，以及样式清理 / 润色 / 图片本地化等 AI 能力。
+
+### AI 助手
+
+![AI 助手](./docs/images/ai-assistant.png)
+
+按文章 / 模板 / 通用上下文提供快捷操作与对话。
+
+### AI 模型接入（自带 Key）
+
+![AI 模型设置](./docs/images/ai-providers.png)
+
+支持 MiniMax / OpenAI / Anthropic / Ollama。**API Key 只保存在你自己的服务端，严禁提交到 Git。**
+
+> 欢迎继续补登录页、站点、栏目、发布等截图：放到 `docs/images/` 后提 PR 即可。
 
 ---
 

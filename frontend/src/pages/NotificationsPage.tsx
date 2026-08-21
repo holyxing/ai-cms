@@ -167,20 +167,48 @@ export function NotificationsPage() {
             const meta = LEVEL_META[level] || LEVEL_META.info;
             const { Icon } = meta;
             return (
-              <li key={n.id} className={cn('flex gap-3 px-4 py-3', !n.read_at && 'bg-blue-50/30')}>
+              <li
+                key={n.id}
+                className={cn(
+                  'flex gap-3 border-l-2 px-4 py-3',
+                  n.read_at
+                    ? 'border-l-transparent'
+                    : 'border-l-primary bg-blue-50',
+                )}
+              >
                 <div className={cn('mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md', meta.cls)}>
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className={cn('text-sm font-medium', !n.read_at && 'font-semibold')}>{n.title}</h2>
+                    {!n.read_at && (
+                      <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" aria-hidden />
+                    )}
+                    <h2
+                      className={cn(
+                        'text-sm',
+                        n.read_at
+                          ? 'font-normal text-muted-foreground'
+                          : 'font-semibold text-foreground',
+                      )}
+                    >
+                      {n.title}
+                    </h2>
+                    {!n.read_at && (
+                      <Badge variant="info" className="text-[10px]">未读</Badge>
+                    )}
                     <Badge variant="muted" className="text-[10px]">{meta.label}</Badge>
                     {n.duration_ms != null && (
                       <span className="text-[11px] text-muted-foreground">耗时 {fmtDuration(n.duration_ms)}</span>
                     )}
                   </div>
                   {n.body && (
-                    <pre className="mt-1 whitespace-pre-wrap font-sans text-xs leading-relaxed text-muted-foreground">
+                    <pre
+                      className={cn(
+                        'mt-1 whitespace-pre-wrap font-sans text-xs leading-relaxed',
+                        n.read_at ? 'text-muted-foreground/70' : 'text-muted-foreground',
+                      )}
+                    >
                       {n.body}
                     </pre>
                   )}

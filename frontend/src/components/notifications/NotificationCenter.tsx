@@ -232,8 +232,10 @@ export function NotificationCenter() {
                       <li
                         key={n.id}
                         className={cn(
-                          'group flex items-start gap-2.5 px-3 py-2.5 transition-colors hover:bg-secondary/40',
-                          !n.read && 'bg-blue-50/40',
+                          'group flex items-start gap-2.5 border-l-2 px-3 py-2.5 transition-colors hover:bg-secondary/40',
+                          n.read
+                            ? 'border-l-transparent'
+                            : 'border-l-primary bg-blue-50',
                         )}
                       >
                         <div className={cn('flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md', color)}>
@@ -241,8 +243,23 @@ export function NotificationCenter() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-baseline justify-between gap-1">
-                            <span className={cn('truncate text-[12px] font-medium', !n.read && 'font-semibold')}>
-                              {n.title}
+                            <span className="flex min-w-0 items-center gap-1.5">
+                              {!n.read && (
+                                <span
+                                  className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary"
+                                  aria-hidden
+                                />
+                              )}
+                              <span
+                                className={cn(
+                                  'truncate text-[12px]',
+                                  n.read
+                                    ? 'font-normal text-muted-foreground'
+                                    : 'font-semibold text-foreground',
+                                )}
+                              >
+                                {n.title}
+                              </span>
                             </span>
                             <button
                               type="button"
@@ -254,7 +271,12 @@ export function NotificationCenter() {
                             </button>
                           </div>
                           {n.description && (
-                            <p className="mt-0.5 line-clamp-3 whitespace-pre-line text-[11px] text-muted-foreground">
+                            <p
+                              className={cn(
+                                'mt-0.5 line-clamp-3 whitespace-pre-line text-[11px]',
+                                n.read ? 'text-muted-foreground/70' : 'text-muted-foreground',
+                              )}
+                            >
                               {n.description}
                             </p>
                           )}

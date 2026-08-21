@@ -170,32 +170,41 @@ export function NotificationsPage() {
               <li
                 key={n.id}
                 className={cn(
-                  'flex gap-3 border-l-2 px-4 py-3',
+                  'flex gap-3 border-l-4 px-4 py-3',
                   n.read_at
-                    ? 'border-l-transparent'
+                    ? 'border-l-transparent bg-secondary/40'
                     : 'border-l-primary bg-blue-50',
                 )}
               >
-                <div className={cn('mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md', meta.cls)}>
+                <div
+                  className={cn(
+                    'mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md',
+                    n.read_at ? 'bg-secondary text-muted-foreground' : meta.cls,
+                  )}
+                >
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     {!n.read_at && (
-                      <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" aria-hidden />
+                      <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary" aria-hidden />
                     )}
                     <h2
                       className={cn(
                         'text-sm',
                         n.read_at
                           ? 'font-normal text-muted-foreground'
-                          : 'font-semibold text-foreground',
+                          : 'font-semibold text-primary',
                       )}
                     >
                       {n.title}
                     </h2>
-                    {!n.read_at && (
-                      <Badge variant="info" className="text-[10px]">未读</Badge>
+                    {n.read_at ? (
+                      <Badge variant="muted" className="text-[10px]">已读</Badge>
+                    ) : (
+                      <span className="rounded-md bg-primary px-1.5 text-[10px] font-medium leading-5 text-primary-foreground">
+                        未读
+                      </span>
                     )}
                     <Badge variant="muted" className="text-[10px]">{meta.label}</Badge>
                     {n.duration_ms != null && (
@@ -206,7 +215,7 @@ export function NotificationsPage() {
                     <pre
                       className={cn(
                         'mt-1 whitespace-pre-wrap font-sans text-xs leading-relaxed',
-                        n.read_at ? 'text-muted-foreground/70' : 'text-muted-foreground',
+                        n.read_at ? 'text-muted-foreground/60' : 'text-slate-600',
                       )}
                     >
                       {n.body}
@@ -223,7 +232,7 @@ export function NotificationsPage() {
                     {!n.read_at && (
                       <button
                         type="button"
-                        className="hover:text-foreground"
+                        className="font-medium text-primary hover:underline"
                         onClick={() => markOne.mutate(n.id)}
                       >
                         标为已读

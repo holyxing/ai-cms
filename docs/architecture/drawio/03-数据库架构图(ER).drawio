@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="OpenClaw" agent="MiniMax-M3" version="24.7.0">
+  <diagram id="db-er" name="数据库 ER (P3.9.5+ 31 张表)">
+    <mxGraphModel dx="3000" dy="2000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="AI-CMS 数据库 ER (P3.9.5+ 共 31 张表)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="2120" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 域分组 ====== -->
+        <mxCell id="grp-id" value="身份 / RBAC (7 张)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="500" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-site" value="站点 (3 张)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="560" y="70" width="500" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-content" value="栏目 / 内容 (5 张)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1080" y="70" width="500" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-media" value="媒体 (5 张)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1600" y="70" width="500" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-template" value="模板 / 主题 (4 张)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="420" width="500" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-publish" value="发布 (2 张)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="560" y="420" width="500" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-ai" value="AI (4 张) ← P3.9.5 重点" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1080" y="420" width="500" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-other" value="其他 (1 张)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1600" y="420" width="500" height="280" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 身份域 7 表 ====== -->
+        <mxCell id="users" value="users&#10;&#10;PK: id (uuid)&#10;UK: email&#10;- username&#10;- password_hash&#10;- display_name&#10;- is_active&#10;- is_super_admin&#10;- created_at&#10;- updated_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="110" width="220" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="user_roles" value="user_roles&#10;&#10;PK: (user_id, role_id)&#10;FK: user_id → users.id&#10;FK: role_id → roles.id&#10;- assigned_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left" vertex="1" parent="1">
+          <mxGeometry x="300" y="110" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="roles" value="roles&#10;&#10;PK: id (uuid)&#10;UK: (scope, code)&#10;- scope (system/site)&#10;- code (owner/editor/...)&#10;- name&#10;- is_builtin" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="310" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="role_permissions" value="role_permissions&#10;&#10;PK: (role_id, permission_id)&#10;FK: role_id → roles.id&#10;FK: permission_id → permissions.id" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left" vertex="1" parent="1">
+          <mxGeometry x="300" y="250" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="permissions" value="permissions&#10;&#10;PK: id (uuid)&#10;UK: code&#10;- code (sites.read 等)&#10;- resource&#10;- action" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="400" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 站点域 3 表 ====== -->
+        <mxCell id="sites" value="sites&#10;&#10;PK: id (uuid)&#10;UK: slug&#10;- name&#10;- owner_id → users.id&#10;- settings (jsonb)&#10;- publish_status&#10;- deleted_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left" vertex="1" parent="1">
+          <mxGeometry x="580" y="110" width="220" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="site_domains" value="site_domains&#10;&#10;PK: id&#10;FK: site_id → sites.id&#10;UK: domain&#10;- domain&#10;- is_primary" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left" vertex="1" parent="1">
+          <mxGeometry x="820" y="110" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="site_members" value="site_members&#10;&#10;PK: (site_id, user_id)&#10;FK: site_id → sites.id&#10;FK: user_id → users.id&#10;- role_id → roles.id&#10;- joined_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left" vertex="1" parent="1">
+          <mxGeometry x="580" y="260" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="site_assets" value="site_assets&#10;&#10;PK: id&#10;FK: site_id → sites.id&#10;- name&#10;- file_path (host 绝对)&#10;- category (css/js/img/...)&#10;- version" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;align=left" vertex="1" parent="1">
+          <mxGeometry x="820" y="210" width="220" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 栏目内容 5 表 ====== -->
+        <mxCell id="categories" value="categories&#10;&#10;PK: id (uuid)&#10;FK: site_id → sites.id&#10;FK: parent_id → categories.id (树)&#10;FK: template_id → layouts.id&#10;- slug&#10;- name&#10;- path (物化路径)&#10;- content_count&#10;- deleted_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left" vertex="1" parent="1">
+          <mxGeometry x="1100" y="110" width="220" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="contents" value="contents&#10;&#10;PK: id (uuid)&#10;FK: site_id → sites.id&#10;FK: category_id → categories.id&#10;FK: is_copy_of → contents.id&#10;- slug&#10;- title&#10;- subtitle&#10;- status (draft/published/...)&#10;- published_at&#10;- view_count&#10;- deleted_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left" vertex="1" parent="1">
+          <mxGeometry x="1340" y="110" width="220" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="content_versions" value="content_versions&#10;&#10;PK: id&#10;FK: content_id → contents.id&#10;FK: author_id → users.id&#10;- body (HTML 主体)&#10;- excerpt&#10;- version_number&#10;- is_ai_generated&#10;- **永不删**" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left" vertex="1" parent="1">
+          <mxGeometry x="1100" y="290" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="content_taxonomies" value="content_taxonomies&#10;&#10;PK: (content_id, taxonomy_id)&#10;FK: content_id → contents.id&#10;FK: taxonomy_id → taxonomies.id&#10;- type (tag/category)" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left" vertex="1" parent="1">
+          <mxGeometry x="1340" y="300" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="content_snapshots" value="content_snapshots&#10;&#10;PK: id&#10;FK: deployment_id → deployments.id&#10;FK: content_id → contents.id&#10;- body_html (静态化时)&#10;- snapshot_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;align=left" vertex="1" parent="1">
+          <mxGeometry x="1580" y="290" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 媒体 5 表 ====== -->
+        <mxCell id="media" value="media&#10;&#10;PK: id (uuid)&#10;FK: site_id → sites.id&#10;FK: uploader_id → users.id&#10;FK: folder_id → media_folders.id&#10;- object_key (MinIO)&#10;- filename&#10;- mime_type&#10;- size_bytes&#10;- width/height" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;align=left" vertex="1" parent="1">
+          <mxGeometry x="1620" y="110" width="220" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="media_folders" value="media_folders&#10;&#10;PK: id&#10;FK: site_id → sites.id&#10;FK: parent_id → media_folders.id&#10;- name&#10;- path" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;align=left" vertex="1" parent="1">
+          <mxGeometry x="1860" y="110" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="media_relations" value="media_relations&#10;&#10;PK: (media_id, content_id)&#10;FK: media_id → media.id&#10;FK: content_id → contents.id" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;align=left" vertex="1" parent="1">
+          <mxGeometry x="1620" y="290" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="media_tags" value="media_tags ← P3 新&#10;&#10;PK: id&#10;FK: site_id → sites.id&#10;UK: (site_id, slug)&#10;- name, slug" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;align=left" vertex="1" parent="1">
+          <mxGeometry x="1860" y="210" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="media_tag_links" value="media_tag_links&#10;&#10;PK: (media_id, tag_id)&#10;FK: media_id → media.id&#10;FK: tag_id → media_tags.id" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;align=left" vertex="1" parent="1">
+          <mxGeometry x="1860" y="290" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 模板主题 4 表 ====== -->
+        <mxCell id="layouts" value="layouts&#10;&#10;PK: id (uuid)&#10;FK: site_id → sites.id&#10;FK: parent_id → layouts.id (继承)&#10;FK: theme_version_id&#10;- code (default/news-list/...)&#10;- scope (site/category/content)&#10;- template_html&#10;- is_default, is_active" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#e1d5e7;strokeColor=#9673a6;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="460" width="220" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="layout_versions" value="layout_versions&#10;&#10;PK: id&#10;FK: layout_id → layouts.id&#10;- version_number&#10;- template_html&#10;- created_at&#10;(历史版本)" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#e1d5e7;strokeColor=#9673a6;align=left" vertex="1" parent="1">
+          <mxGeometry x="300" y="460" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="themes" value="themes&#10;&#10;PK: id&#10;- name&#10;- description&#10;- author" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#e1d5e7;strokeColor=#9673a6;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="220" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="theme_versions" value="theme_versions&#10;&#10;PK: id&#10;FK: site_id → sites.id&#10;FK: theme_id → themes.id&#10;- tokens (jsonb)&#10;- is_active" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#e1d5e7;strokeColor=#9673a6;align=left" vertex="1" parent="1">
+          <mxGeometry x="300" y="580" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 发布 2 表 ====== -->
+        <mxCell id="deployments" value="deployments ← P3.6.1&#10;&#10;PK: id&#10;FK: site_id → sites.id&#10;- **scope (site/category/content)**&#10;- **scope_id**&#10;- status (pending/...)&#10;- build_log&#10;- artifact_path, artifact_size&#10;- duration_ms&#10;- content_count" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;align=left" vertex="1" parent="1">
+          <mxGeometry x="580" y="460" width="220" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="scheduled_publishes" value="scheduled_publishes&#10;&#10;PK: id&#10;FK: site_id → sites.id&#10;FK: content_id → contents.id&#10;- scheduled_at&#10;- promoted (bool)" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;align=left" vertex="1" parent="1">
+          <mxGeometry x="820" y="460" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ====== AI 4 表 (P3.9.5 重点) ====== -->
+        <mxCell id="ai_providers" value="ai_providers&#10;&#10;PK: id&#10;FK: user_id → users.id&#10;- provider_name (openai/...)&#10;- api_key_encrypted (Fernet)&#10;- model, is_default" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fad7ac;strokeColor=#b46504;align=left" vertex="1" parent="1">
+          <mxGeometry x="1100" y="460" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_runs" value="ai_runs ← P3.9.5 18 task_types&#10;&#10;PK: id&#10;FK: user_id, site_id, content_id&#10;FK: provider_id → ai_providers.id&#10;FK: layout_id, theme_version_id&#10;- **task_type** (CHECK 18 值)&#10;  rewrite/expand/shorten/polish/&#10;  translate/draft/audit/theme/&#10;  image/optimize_design/responsive/&#10;  a11y/seo/format_html/extract_assets/&#10;  **import_docx/import_pdf/&#10;  import_paste_html**&#10;- status, current_step&#10;- input (jsonb)&#10;- output (jsonb)&#10;- prompt_tokens, completion_tokens&#10;- cost_usd&#10;- error_message" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fad7ac;strokeColor=#b46504;align=left" vertex="1" parent="1">
+          <mxGeometry x="1340" y="460" width="240" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_run_steps" value="ai_run_steps ← P3.9.5 新&#10;&#10;PK: id&#10;FK: run_id → ai_runs.id (CASCADE)&#10;- step_name (validate/generate/save)&#10;- **step_order (NOT NULL)**&#10;- status, delta&#10;- output (jsonb)&#10;- started_at, finished_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fad7ac;strokeColor=#b46504;align=left" vertex="1" parent="1">
+          <mxGeometry x="1100" y="580" width="220" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_usage_daily" value="ai_usage_daily ← P3.9.5 新&#10;&#10;PK: (user_id, date)&#10;FK: user_id → users.id&#10;- total_tokens, cost_usd&#10;- runs_count" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fad7ac;strokeColor=#b46504;align=left" vertex="1" parent="1">
+          <mxGeometry x="1340" y="700" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 其他 ====== -->
+        <mxCell id="taxonomies" value="taxonomies&#10;&#10;PK: id&#10;FK: site_id → sites.id&#10;- type (tag)&#10;- name, slug" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#f5f5f5;strokeColor=#666666;align=left" vertex="1" parent="1">
+          <mxGeometry x="1620" y="460" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="audit_logs" value="audit_logs&#10;&#10;PK: id&#10;FK: user_id, site_id&#10;- action, resource, resource_id&#10;- details (jsonb)&#10;- created_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#f5f5f5;strokeColor=#666666;align=left" vertex="1" parent="1">
+          <mxGeometry x="1860" y="460" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 关键 FK 关系线 ====== -->
+        <mxCell id="fk1" style="endArrow=open;startArrow=ERone;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0" edge="1" parent="1" source="users" target="user_roles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk2" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="roles" target="user_roles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk3" style="endArrow=open;startArrow=ERmany;html=1" edge="1" parent="1" source="roles" target="role_permissions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk4" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="permissions" target="role_permissions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fk5" value="1:N" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#82b366;strokeWidth=2" edge="1" parent="1" source="users" target="sites">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk6" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="sites" target="site_domains">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk7" value="N:M" style="endArrow=open;startArrow=ERmany;html=1;strokeColor=#82b366" edge="1" parent="1" source="users" target="site_members">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk8" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="sites" target="site_members">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk9" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="sites" target="site_assets">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fk10" value="1:N" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#d6b656;strokeWidth=2" edge="1" parent="1" source="sites" target="categories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk11" value="树 (self)" style="endArrow=open;startArrow=ERone;html=1;edgeStyle=entityRelationEdgeStyle" edge="1" parent="1" source="categories" target="categories">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1080" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk12" value="1:N" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#d6b656;strokeWidth=2" edge="1" parent="1" source="categories" target="contents">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk13" value="1:N 永不删" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#b85450;strokeWidth=2" edge="1" parent="1" source="contents" target="content_versions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk14" value="N:M" style="endArrow=open;startArrow=ERmany;html=1" edge="1" parent="1" source="contents" target="content_taxonomies">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk15" value="1:N 静态化" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#b85450;strokeWidth=2" edge="1" parent="1" source="deployments" target="content_snapshots">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fk16" value="1:N" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="sites" target="media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk17" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="media" target="media_relations">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk18" value="N:M" style="endArrow=open;startArrow=ERmany;html=1" edge="1" parent="1" source="media" target="media_tag_links">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk19" value="N:M" style="endArrow=open;startArrow=ERmany;html=1" edge="1" parent="1" source="media_tags" target="media_tag_links">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fk20" value="1:N" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="sites" target="layouts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk21" value="继承" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="layouts" target="layouts">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="60" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk22" value="1:N" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="layouts" target="layout_versions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk23" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="themes" target="theme_versions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk24" value="模板默认" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="theme_versions" target="layouts">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="fk25" value="1:N" style="endArrow=open;startArrow=ERone;html=1" edge="1" parent="1" source="sites" target="deployments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk26" value="栏目/内容粒度" style="endArrow=open;startArrow=ERone;html=1;dashed=1" edge="1" parent="1" source="categories" target="deployments">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="fk27" value="1:N" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#b46504;strokeWidth=2" edge="1" parent="1" source="users" target="ai_providers">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1080" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fk28" value="1:N" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#b46504;strokeWidth=2" edge="1" parent="1" source="ai_providers" target="ai_runs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk29" value="1:N" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#b46504;strokeWidth=2" edge="1" parent="1" source="ai_runs" target="ai_run_steps">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk30" value="1:N" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#b46504" edge="1" parent="1" source="users" target="ai_usage_daily">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fk31" value="1:N" style="endArrow=open;startArrow=ERone;html=1;strokeColor=#b46504" edge="1" parent="1" source="contents" target="ai_runs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1480" y="350" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 图例 -->
+        <mxCell id="legend" value="图例:&#10;🟦 身份/RBAC  &#10;🟩 站点  &#10;🟨 栏目/内容  &#10;🟧 媒体  &#10;🟪 模板/主题  &#10;🟥 发布  &#10;🟧(深) AI 重点  &#10;⬜ 其他" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;align=left;verticalAlign=top;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="40" y="740" width="280" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- 关键决策注释 -->
+        <mxCell id="note1" value="P3.9.5 关键决策:&#10;1. content_versions 永不删 (审计/回滚)&#10;2. deployments 加 scope+scope_id (3 粒度发布)&#10;3. ai_run_steps 显式 step_order (NOT NULL)&#10;4. ai_runs.task_type 18 值 check constraint&#10;5. content_snapshots 静态化时快照&#10;6. RLS 多租户隔离 (P0)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;align=left;verticalAlign=top;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="340" y="740" width="500" height="180" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

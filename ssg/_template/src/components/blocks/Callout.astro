@@ -1,0 +1,8 @@
+---
+// Callout.astro - 高亮块 (info/warning/success/danger)
+const { block } = Astro.props;
+const variant = block?.attrs?.variant || "info";
+---
+<div class:list={["callout", `callout-${variant}`]}>
+  <slot />
+</div>

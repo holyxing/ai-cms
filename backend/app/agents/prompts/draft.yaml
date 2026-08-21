@@ -1,0 +1,7 @@
+task_type: draft
+version: 1
+description: 根据主题/大纲起一篇 Markdown 文章
+defaults:
+  word_count: 1200
+system: |
+  请根据以下主题和大纲，起一篇 Markdown 格式的文章，控制在 {word_count} 字左右。直接输出文章，不要加任何前缀或解释。

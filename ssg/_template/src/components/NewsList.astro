@@ -1,0 +1,191 @@
+---
+// NewsList.astro - 新闻列表组件
+// 依据: 行业动态 / 公司动态 等新闻聚合栏目
+//
+// 入参:
+//   - items: [{ id, slug, title, excerpt, cover_image, published_at, category_slug, author_name }]
+//   - emptyText: 占位文字
+//   - showCover: 是否显示封面图 (默认 true)
+//
+// 设计风格遵循 docs/06-设计系统.md: 白底、紧凑、token 化
+---
+{interface Props {
+  items: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    excerpt?: string | null;
+    cover_image?: string | null;
+    published_at?: string | null;
+    category_slug?: string | null;
+    author_name?: string | null;
+  }>;
+  emptyText?: string;
+  showCover?: boolean;
+  variant?: 'card' | 'list';
+}}
+
+const { items, emptyText = '暂无新闻', showCover = true, variant = 'card' } = Astro.props;
+
+const formatDate = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+---
+
+{items.length === 0 ? (
+  <div class="news-empty">{emptyText}</div>
+) : variant === 'list' ? (
+  <ul class="news-list">
+    {items.map((it) => (
+      <li class="news-item-list">
+        <a href={`/${it.slug}/`} class="news-link">
+          <span class="news-date">{formatDate(it.published_at)}</span>
+          <span class="news-title">{it.title}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+) : (
+  <div class="news-grid">
+    {items.map((it) => (
+      <article class="news-card">
+        <a href={`/${it.slug}/`} class="news-card-link">
+          {showCover && it.cover_image && (
+            <div class="news-card-cover">
+              <img src={it.cover_image} alt={it.title} loading="lazy" />
+            </div>
+          )}
+          <div class="news-card-body">
+            <h3 class="news-card-title">{it.title}</h3>
+            {it.excerpt && <p class="news-card-excerpt">{it.excerpt}</p>}
+            <div class="news-card-meta">
+              {it.author_name && <span>{it.author_name}</span>}
+              {it.author_name && it.published_at && <span class="dot">·</span>}
+              {it.published_at && <time datetime={it.published_at}>{formatDate(it.published_at)}</time>}
+            </div>
+          </div>
+        </a>
+      </article>
+    ))}
+  </div>
+)}
+
+<style>
+  .news-empty {
+    text-align: center;
+    padding: var(--spacing-3xl);
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-xl);
+  }
+
+  .news-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .news-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+  .news-card-link {
+    display: block;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .news-card-cover {
+    aspect-ratio: 16 / 9;
+    background: var(--color-background);
+    overflow: hidden;
+  }
+  .news-card-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .news-card-body {
+    padding: var(--spacing-md);
+  }
+  .news-card-title {
+    font-size: var(--fontSize-lg);
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .news-card-excerpt {
+    font-size: var(--fontSize-sm);
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin: 0 0 var(--spacing-md) 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .news-card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--fontSize-xs);
+    color: var(--color-text-muted);
+  }
+  .news-card-meta .dot {
+    opacity: 0.5;
+  }
+
+  /* 列表式 (无封面) */
+  .news-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .news-item-list {
+    border-bottom: 1px solid var(--color-border);
+  }
+  .news-item-list:first-child {
+    border-top: 1px solid var(--color-border);
+  }
+  .news-link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) 0;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .news-link:hover .news-title {
+    color: var(--color-primary);
+  }
+  .news-date {
+    color: var(--color-text-muted);
+    font-size: var(--fontSize-sm);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    min-width: 5.5em;
+  }
+  .news-title {
+    font-size: var(--fontSize-base);
+    transition: color 0.15s;
+  }
+</style>

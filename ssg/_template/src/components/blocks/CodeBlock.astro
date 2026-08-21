@@ -1,0 +1,6 @@
+---
+// CodeBlock.astro - 代码块
+const { block } = Astro.props;
+const language = block?.attrs?.language || "";
+---
+<pre><code class={language ? `language-${language}` : ''}><slot /></code></pre>

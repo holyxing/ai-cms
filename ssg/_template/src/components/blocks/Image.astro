@@ -1,0 +1,11 @@
+---
+// Image.astro - 图片 block
+const { block } = Astro.props;
+const src = block?.attrs?.src || block?.attrs?.media_id || "";
+const alt = block?.attrs?.alt || "";
+const caption = block?.attrs?.caption || "";
+---
+<figure>
+  <img src={src} alt={alt} loading="lazy" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

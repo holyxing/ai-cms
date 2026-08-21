@@ -1,0 +1,9 @@
+---
+// Quote.astro - 引用 block (blockquote)
+const { block } = Astro.props;
+const cite = block?.attrs?.cite || "";
+---
+<blockquote>
+  <slot />
+  {cite && <cite>— {cite}</cite>}
+</blockquote>

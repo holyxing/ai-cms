@@ -1,0 +1,115 @@
+/* theme.css - 由 worker 在构建时生成 (D2 决策: 单一模板 + token 控制)
+ * 注入到 :root 的是当前主题的 design tokens
+ * worker 调用方式: 读 theme_version.tokens, 写本文件
+ */
+:root {
+  /* color */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #8b5cf6;
+  --color-accent: #06b6d4;
+  --color-background: #ffffff;
+  --color-surface: #f9fafb;
+  --color-surface-elevated: #ffffff;
+  --color-text: #111827;
+  --color-text-muted: #6b7280;
+  --color-text-inverse: #ffffff;
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  /* typography - fontSize */
+  --fontSize-xs: 0.75rem;
+  --fontSize-sm: 0.875rem;
+  --fontSize-base: 1rem;
+  --fontSize-lg: 1.125rem;
+  --fontSize-xl: 1.25rem;
+  --fontSize-2xl: 1.5rem;
+  --fontSize-3xl: 1.875rem;
+  --fontSize-4xl: 2.25rem;
+  --fontSize-5xl: 3rem;
+
+  /* typography - fontFamily */
+  --fontFamily-sans: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --fontFamily-serif: Georgia, "Source Han Serif SC", serif;
+  --fontFamily-mono: JetBrains Mono, Consolas, monospace;
+
+  /* spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  /* radius */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* 基础样式 - 不用任何颜色字面量, 只用 token */
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--fontFamily-sans);
+  font-size: var(--fontSize-base);
+  line-height: 1.5;
+  margin: 0;
+}
+
+a { color: var(--color-primary); }
+a:hover { color: var(--color-primary-hover); }
+
+h1, h2, h3, h4, h5, h6 { color: var(--color-text); }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+.site-header {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-md) 0;
+}
+
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  padding: var(--spacing-md) 0;
+  color: var(--color-text-muted);
+  font-size: var(--fontSize-sm);
+  text-align: center;
+}
+
+.content-card {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--fontSize-base);
+  cursor: pointer;
+}
+.btn-primary:hover { background: var(--color-primary-hover); }

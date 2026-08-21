@@ -1,0 +1,7 @@
+task_type: expand
+version: 1
+description: 扩写文本，增加细节和深度
+defaults:
+  max_chars: 8000
+system: |
+  请扩写以下文本，增加细节和深度，直接输出扩写后的全文，不要加任何前缀或解释。

@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === Login 背景动画 === */
+@keyframes aurora-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(80px, 60px) scale(1.15); }
+  66% { transform: translate(-40px, 100px) scale(0.95); }
+}
+@keyframes aurora-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-100px, -40px) scale(1.1); }
+  66% { transform: translate(60px, -80px) scale(0.9); }
+}
+@keyframes aurora-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -60px) scale(1.2); }
+}
+@keyframes node-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+@keyframes float-card {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+/* Login: 标题渐变流动 */
+@keyframes login-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+/* Login: 入场上浮 */
+@keyframes login-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Login: 连接线流动 */
+@keyframes login-dash-flow {
+  to { stroke-dashoffset: -48; }
+}
+/* Login: 扫描光带 */
+@keyframes login-scan {
+  0% { transform: translateY(-20%); opacity: 0; }
+  12% { opacity: 0.55; }
+  45% { opacity: 0.35; }
+  100% { transform: translateY(120%); opacity: 0; }
+}
+/* Login: 轨道缓慢旋转 */
+@keyframes login-orbit {
+  to { transform: rotate(360deg); }
+}
+.login-fade-up {
+  animation: login-fade-up 0.7s ease-out both;
+}
+.login-title-gradient {
+  background-image: linear-gradient(90deg, #0284c7, #2563eb, #0891b2, #2563eb, #0284c7);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: login-gradient-shift 8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="aurora-"],
+  [style*="node-pulse"],
+  [style*="float-card"],
+  [style*="login-"],
+  .login-fade-up,
+  .login-title-gradient {
+    animation: none !important;
+  }
+  .login-fade-up { opacity: 1; transform: none; }
+  .login-title-gradient {
+    background-image: linear-gradient(90deg, #0284c7, #2563eb, #0891b2);
+    background-size: 100% 100%;
+  }
+}
+
+/* === 主色: SaaS 蓝 (Notion / Linear / Vercel 风) === */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 221 83% 53%;              /* SaaS 蓝 - 主色 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 14% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+
+    --radius: 6px;
+
+    /* 强调色 - 用于图标/状态点 */
+    --accent-blue: 221 83% 53%;
+    --accent-emerald: 160 84% 39%;
+    --accent-amber: 38 92% 50%;
+    --accent-purple: 262 83% 58%;
+    --accent-rose: 351 89% 60%;
+  }
+}
+
+/* === Dark 主题 (P3.6.2 补: data-theme-mode="dark" 触发) === */
+@layer base {
+  :root[data-theme-mode="dark"] {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --secondary: 217 33% 14%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 14%;
+    --accent-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 221 83% 53%;
+
+    --accent-blue: 221 83% 60%;
+    --accent-emerald: 160 84% 50%;
+    --accent-amber: 38 92% 60%;
+    --accent-purple: 262 83% 65%;
+    --accent-rose: 351 89% 65%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
+      "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4 { letter-spacing: -0.01em; }
+}
+
+@layer utilities {
+  .row-hover:hover { background: hsl(var(--accent)); }
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+  .border-b-fine { border-bottom: 1px solid hsl(var(--border)); }
+  .link { @apply text-[hsl(var(--accent-blue))] hover:underline underline-offset-4; }
+  .font-mono-xs { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; }
+}
+
+/* AI 抽屉: 从右滑入 + 淡出 */
+@keyframes drawer-in {
+  from { transform: translateX(100%); opacity: 0.6; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+dialog[open].animate-\[drawer-in_200ms_ease-out\] {
+  animation: drawer-in 200ms ease-out;
+}
+/* 居中 Modal: 淡入 + 轻微缩放 */
+@keyframes modal-in {
+  from { transform: scale(0.96); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+dialog[open].animate-\[modal-in_160ms_ease-out\] {
+  animation: modal-in 160ms ease-out;
+}
+dialog::backdrop { background: rgb(0 0 0 / 0.4); }
+
+/* P3.10.7 右侧 Drawer: 从右滑入 */
+@keyframes drawer-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+dialog[open].animate-\[drawer-in_220ms_ease-out\] {
+  animation: drawer-in 220ms ease-out;
+}
+

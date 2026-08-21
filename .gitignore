@@ -1,0 +1,57 @@
+# 依赖与构建产物
+node_modules/
+.pnpm-store/
+.venv/
+venv/
+env/
+dist/
+dist-ssr/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.tox/
+*.tsbuildinfo
+
+# 密钥与本地环境（严禁提交）
+.env
+.env.*
+!.env.example
+!**/.env.example
+.dev_token
+**/token.txt
+*.token
+*.pem
+*.key
+credentials.json
+**/secrets/**
+
+# 本地数据与日志
+data/
+ssg/site_assets/
+backend/ssg/site_assets/
+ai-cms-migrate/*.dump
+ai-cms-migrate/*.tar.gz
+*.db
+*.sqlite
+*.log
+logs/
+.DS_Store
+celerybeat-schedule
+celerybeat-schedule.*
+
+# 本地调试脚本产物（勿提交）
+frontend/test_*.cjs
+frontend/test-*.cjs
+backend/p3_minimax_e2e*.py
+backend/p3_minimax_stream.py
+backend/p3_minimax_api.py
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json

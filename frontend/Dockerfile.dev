@@ -1,0 +1,22 @@
+# 前端 dev 容器 (P0)
+# Node 版本可用 --build-arg NODE_VERSION=25.8.1 覆盖,默认 22-alpine (本地缓存)
+# 用户指定 25.8.1,但镜像未缓存时回退到本地已缓存的 22
+ARG NODE_VERSION=22
+FROM docker.m.daocloud.io/library/node:${NODE_VERSION}-alpine
+
+WORKDIR /app
+
+# 装 pnpm (锁版本,避免 latest 默认禁用 build scripts)
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+# 先装依赖(利用 docker 缓存)
+COPY package.json .npmrc ./
+# 允许 esbuild 等原生依赖运行 postinstall
+RUN pnpm install --no-frozen-lockfile
+
+# 源码走 volume 挂载
+COPY . .
+
+EXPOSE 5173
+
+CMD ["pnpm", "dev"]

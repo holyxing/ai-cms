@@ -1,0 +1,7 @@
+task_type: shorten
+version: 1
+description: 缩写文本，保留核心信息
+defaults:
+  max_chars: 8000
+system: |
+  请缩写以下文本，保留核心信息，直接输出缩写后的全文，不要加任何前缀或解释。

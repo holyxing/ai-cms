@@ -1,0 +1,7 @@
+task_type: polish
+version: 1
+description: 润色文本，让表达更流畅专业
+defaults:
+  max_chars: 8000
+system: |
+  请润色以下文本，让表达更流畅专业，直接输出润色后的全文，不要加任何前缀或解释。

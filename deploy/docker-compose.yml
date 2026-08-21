@@ -1,0 +1,220 @@
+# AI-CMS Docker Compose（单机部署）
+# 启动: docker compose up -d
+# 包含 profile: ai-local（启用本地 Ollama）
+# 顶层 name 固定项目名为 ai-cms，避免 Desktop 显示成目录名 deploy
+name: ai-cms
+
+services:
+  # ============ 数据库 ============
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${PROJECT_NAME:-ai-cms}-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: ${TZ}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai_cms_net
+
+  # ============ 缓存 / 队列 ============
+  redis:
+    image: redis:7-alpine
+    container_name: ${PROJECT_NAME:-ai-cms}-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ai_cms_net
+
+  # ============ 媒体存储 ============
+  minio:
+    image: minio/minio:latest
+    container_name: ${PROJECT_NAME:-ai-cms}-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_API_CORS_ALLOW_ORIGIN: "*"
+      TZ: ${TZ}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ai_cms_net
+
+  # ============ 后端 API ============
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME:-ai-cms}-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: media
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost/media}
+      # B5 P2.5 host-based 域名映射
+      NGINX_CONF_DIR: /etc/nginx/conf.d
+      NGINX_SITES_MAP: /etc/nginx/conf.d/sites.map
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ../backend:/app
+      # P3.6.2: ssg 共享挂载 (跟 worker 一致), 让 site_assets 在 api 写入后 worker 能读到
+      - ../ssg:/app/ssg
+      # P3.6.1: 改为 host bind mount, 宿主机可直接看发布产物
+      # 留空 SITES_DATA_HOST_PATH 时兑底用 named volume (旧行为)
+      - ${SITES_DATA_HOST_PATH:-sites_data}:/var/www/sites
+      - nginx_conf:/etc/nginx/conf.d
+    command: >
+      sh -c "alembic upgrade head &&
+             PYTHONPATH=/app python scripts/seed_minio.py &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    networks:
+      - ai_cms_net
+
+  # ============ Celery Worker ============
+  worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME:-ai-cms}-worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: media
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost/media}
+      # P2 SSG: 装 Node 后翻 True, Day 6 (当前)
+      # 2026-06-06: 关掉走 LayoutRenderer 路径 (D4+D5), 生成 home+cat+content+sitemap 4 种页
+      ASTRO_ENABLED: "false"
+      SITES_DATA_DIR: /var/www/sites
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ../backend:/app
+      - ../ssg:/app/ssg
+      - ${SITES_DATA_HOST_PATH:-sites_data}:/var/www/sites
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    networks:
+      - ai_cms_net
+
+  # ============ Celery Beat (P3.5 状态机定时任务) ============
+  beat:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME:-ai-cms}-beat
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+      - worker
+    volumes:
+      - ../backend:/app
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    networks:
+      - ai_cms_net
+
+  # ============ 前台 Admin（dev Vite） ============
+  admin:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    container_name: ${PROJECT_NAME:-ai-cms}-admin
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE: ${VITE_API_BASE}
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    networks:
+      - ai_cms_net
+
+  # ============ Nginx 反代 ============
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME:-ai-cms}-nginx
+    restart: unless-stopped
+    depends_on:
+      - api
+      - admin
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_conf:/etc/nginx/conf.d
+      - ${SITES_DATA_HOST_PATH:-sites_data}:/var/www/sites
+    networks:
+      - ai_cms_net
+
+  # ============ (P5: 本地 Ollama 已下线, 2026-06-06 改用远端 provider) ============
+  # ollama 块删除 — 0 模型空载 63MiB 浪费, 改 profiles: ["ai-local"] 也挡不住手动启动
+  # 以后想加回来: profiles 模式默认不启, 需要时显式 --profile ai-local
+
+  # ============ (P5: 备份服务已下线, 2026-06-06 暂不需要) ============
+  # backup 块删除 — 镜像 entrypoint 写错, 一直重启循环, P5 阶段再修
+
+volumes:
+  pg_data:
+  redis_data:
+  minio_data:
+  sites_data:
+  nginx_conf:
+
+networks:
+  ai_cms_net:
+    driver: bridge

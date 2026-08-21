@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="OpenClaw" agent="MiniMax-M3" version="24.7.0">
+  <diagram id="lineage" name="数据血缘图 (Lineage)">
+    <mxGraphModel dx="3000" dy="2200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="AI-CMS 数据血缘图 (P3.9.5+ 文档导入 + 静态发布 全链路)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="2120" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ====== ① 输入源 ====== -->
+        <mxCell id="grp-input" value="① 输入源 (用户)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="380" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="src-docx" value="📄 Word 文档&#10;.docx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="src-pdf" value="📕 PDF 文件" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14" vertex="1" parent="1">
+          <mxGeometry x="190" y="120" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="src-html" value="📋 富文本粘贴&#10;(base64 / 远程URL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="340" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ====== ② MinIO 临时存储 ====== -->
+        <mxCell id="grp-minio" value="② MinIO 临时存储" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="460" y="70" width="380" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="obj-docx" value="MinIO Object&#10;/media/sites/.../abc.docx&#10;(presigned GET)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10" vertex="1" parent="1">
+          <mxGeometry x="480" y="120" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="obj-pdf" value="MinIO Object&#10;/media/sites/.../abc.pdf" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10" vertex="1" parent="1">
+          <mxGeometry x="650" y="120" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="obj-img" value="MinIO Object&#10;/media/sites/.../xyz.png&#10;(临时, 来自 base64)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10" vertex="1" parent="1">
+          <mxGeometry x="565" y="200" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ====== ③ 后端解析 (Celery Worker) ====== -->
+        <mxCell id="grp-parse" value="③ 后端解析 (Celery Worker)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="880" y="70" width="600" height="440" as="geometry" />
+        </mxCell>
+        <mxCell id="import-file" value="import_file.py&#10;_import_impl()&#10;(任务: import_docx/pdf/paste_html)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="900" y="120" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="parse-docx" value="python-docx&#10;• Document() 读 paragraphs&#10;• word/media/ 提取图片&#10;• Title/Heading N/List 样式" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="1200" y="100" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="parse-pdf" value="pymupdf (fitz)&#10;• get_text(&quot;dict&quot;) 读文本&#10;• get_images(full=True) 提图&#10;• 字体大小 → H1/H2/H3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="1200" y="200" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="parse-html" value="正则 data: 抓 base64&#10;• atob 解码&#10;• 上传到 MinIO /media/.../png&#10;• 替换 src" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="1200" y="300" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="layout-llm" value="AI 排版 (可选)&#10;provider.stream()&#10;model=qwen2.5, temp=0.2&#10;max_tokens=8000&#10;token + cost 累计" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;fontSize=11;align=left;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="400" width="260" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ====== ④ PostgreSQL 写入 ====== -->
+        <mxCell id="grp-db" value="④ PostgreSQL 写入" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="800" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="db-content-versions" value="content_versions&#10;• body (HTML 主体)&#10;• version_number&#10;• author_id, is_ai_generated&#10;• **永不删**" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="430" width="220" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="db-content-snapshots" value="content_snapshots&#10;• body_html (静态化快照)&#10;• deployment_id&#10;• snapshot_at" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;align=left" vertex="1" parent="1">
+          <mxGeometry x="300" y="430" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="db-ai-runs" value="ai_runs (18 task_types)&#10;• task_type: import_*&#10;• status, current_step&#10;• input/output (jsonb)&#10;• prompt_tokens, completion_tokens&#10;• cost_usd" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=10;fillColor=#fad7ac;strokeColor=#b46504;align=left" vertex="1" parent="1">
+          <mxGeometry x="540" y="420" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="db-ai-run-steps" value="ai_run_steps&#10;• step_name (validate/generate/save)&#10;• **step_order (NOT NULL)**&#10;• status, delta" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=11;fillColor=#fad7ac;strokeColor=#b46504;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="560" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="db-media" value="media&#10;• object_key (MinIO)&#10;• mime_type, size_bytes&#10;• uploader_id" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=11;fillColor=#ffe6cc;strokeColor=#d79b00;align=left" vertex="1" parent="1">
+          <mxGeometry x="300" y="540" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="db-deployments" value="deployments&#10;• scope, scope_id&#10;• status, build_log&#10;• artifact_path, artifact_size" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fontSize=11;fillColor=#f8cecc;strokeColor=#b85450;align=left" vertex="1" parent="1">
+          <mxGeometry x="540" y="570" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ====== ⑤ 静态发布 ====== -->
+        <mxCell id="grp-publish" value="⑤ 静态发布 (Celery Worker)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="880" y="540" width="600" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="build-site" value="1. build_site()&#10;• 渲染所有 pages&#10;• HY_ 标签替换&#10;• 内存中 PageFile 列表" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="900" y="590" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="disk-writer" value="2. DiskWriter.write_all()&#10;• 写 HTML 到 public/&#10;• 同步, clean_before=True (全量)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="900" y="690" width="260" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="inline-media" value="3. _inline_content_media() ← P3.9.5 关键&#10;• 扫 *.html 抓 &lt;img src=&quot;/media/...&quot;&gt;&#10;• 去重: 同一 key 只下 1 次&#10;• boto3 get_object → public/assets/{basename}&#10;• 改 src 为 assets/{basename} (相对)&#10;• 容错: 下载失败只 warn" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1200" y="590" width="260" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="copy-assets" value="4. _copy_assets_to_public()&#10;• 站点 CSS/JS&#10;• 复制到 public/assets/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="900" y="780" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ====== ⑥ 产物 ====== -->
+        <mxCell id="grp-output" value="⑥ 产物 (Host 可见 / Nginx 托管)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1520" y="70" width="600" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="out-html" value="public/&#10;├─ index.html&#10;├─ ai-tips/&#10;│   └─ test-media-inline.html&#10;└─ ai/&#10;    └─ *.html" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="1540" y="120" width="240" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="out-png" value="public/assets/&#10;└─ 1zoYyWyACU8.png (81B)&#10;&lt;img src=&quot;assets/1zoYyWyACU8.png&quot;&gt;&#10;**离线可看!**" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1800" y="120" width="300" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 跨段连接 ====== -->
+        <mxCell id="l1" style="endArrow=classic;html=1" edge="1" parent="1" source="src-docx" target="obj-docx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l2" style="endArrow=classic;html=1" edge="1" parent="1" source="src-pdf" target="obj-pdf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l3" style="endArrow=classic;html=1" edge="1" parent="1" source="src-html" target="obj-img">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l4" style="endArrow=classic;html=1" edge="1" parent="1" source="obj-docx" target="import-file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l5" style="endArrow=classic;html=1" edge="1" parent="1" source="obj-pdf" target="import-file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l6" style="endArrow=classic;html=1" edge="1" parent="1" source="obj-img" target="import-file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l7" style="endArrow=classic;html=1" edge="1" parent="1" source="import-file" target="parse-docx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l8" style="endArrow=classic;html=1" edge="1" parent="1" source="import-file" target="parse-pdf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l9" style="endArrow=classic;html=1" edge="1" parent="1" source="import-file" target="parse-html">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l10" style="endArrow=classic;html=1" edge="1" parent="1" source="parse-docx" target="layout-llm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l11" style="endArrow=classic;html=1" edge="1" parent="1" source="parse-pdf" target="layout-llm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l12" style="endArrow=classic;html=1" edge="1" parent="1" source="parse-html" target="layout-llm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l13" value="提取图片入库" style="endArrow=classic;html=1" edge="1" parent="1" source="parse-docx" target="db-media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l14" style="endArrow=classic;html=1" edge="1" parent="1" source="parse-pdf" target="db-media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l15" style="endArrow=classic;html=1" edge="1" parent="1" source="parse-html" target="db-media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l16" value="HTML 主体" style="endArrow=classic;html=1;strokeColor=#b46504;strokeWidth=2" edge="1" parent="1" source="layout-llm" target="db-content-versions">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="850" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l17" value="AI 任务记录" style="endArrow=classic;html=1" edge="1" parent="1" source="layout-llm" target="db-ai-runs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l18" value="1:N steps" style="endArrow=classic;html=1" edge="1" parent="1" source="db-ai-runs" target="db-ai-run-steps">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="l19" value="发布触发" style="endArrow=classic;html=1;strokeColor=#b85450" edge="1" parent="1" source="db-content-versions" target="build-site">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l20" value="快照" style="endArrow=classic;html=1" edge="1" parent="1" source="build-site" target="db-content-snapshots">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l21" value="写 deployment" style="endArrow=classic;html=1" edge="1" parent="1" source="build-site" target="db-deployments">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l22" style="endArrow=classic;html=1" edge="1" parent="1" source="build-site" target="disk-writer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l23" style="endArrow=classic;html=1" edge="1" parent="1" source="disk-writer" target="inline-media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l24" value="改写 &lt;img src&gt;" style="endArrow=classic;html=1;strokeColor=#b85450;strokeWidth=2" edge="1" parent="1" source="inline-media" target="out-html">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1480" y="450" />
+              <mxPoint x="1660" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l25" value="拉 MinIO" style="endArrow=classic;html=1;strokeColor=#b85450;strokeWidth=2" edge="1" parent="1" source="inline-media" target="out-png">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1490" y="800" />
+              <mxPoint x="1850" y="800" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="l26" value="引用" style="endArrow=classic;html=1;dashed=1" edge="1" parent="1" source="db-media" target="inline-media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l27" style="endArrow=classic;html=1" edge="1" parent="1" source="disk-writer" target="copy-assets">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 图例 -->
+        <mxCell id="legend" value="图例:&#10;🟦 输入 / 解析&#10;🟩 MinIO 存储 / 产物&#10;🟨 数据库&#10;🟧 AI 智能层 (重点)&#10;🟥 发布关键路径&#10;🟪 Worker 任务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;align=left;verticalAlign=top;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="40" y="950" width="380" height="140" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

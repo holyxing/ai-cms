@@ -1,0 +1,23 @@
+{
+  "name": "ai-cms-ssg-template",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.16.0",
+    "unified": "^11.0.5",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.1",
+    "rehype-stringify": "^10.0.1",
+    "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

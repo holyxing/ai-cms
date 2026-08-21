@@ -1,0 +1,5 @@
+# AI-CMS 备份 cron
+# 默认: 每天凌晨 3 点 (UTC+8 即 Asia/Shanghai)
+# 格式: 分 时 日 月 周  命令
+# 注: TZ=Asia/Shanghai 已在 Dockerfile 设, supercronic 用本地时区
+0 3 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1

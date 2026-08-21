@@ -1,0 +1,7 @@
+---
+// List.astro - 列表 block (bullet / ordered)
+const { block } = Astro.props;
+const ordered = block?.type === "orderedList";
+const Tag = ordered ? 'ol' : 'ul';
+---
+<Tag><slot /></Tag>

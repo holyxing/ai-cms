@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="OpenClaw" agent="MiniMax-M3" version="24.7.0">
+  <diagram id="tech-arch" name="技术架构图 (P3.9.5+)">
+    <mxGraphModel dx="2400" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 标题 -->
+        <mxCell id="title" value="AI-CMS 技术架构图 (P3.9.5+ 2026-06-12)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="1720" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ====== Client 层 ====== -->
+        <mxCell id="layer-client" value="Client 层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="1720" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="browser" value="浏览器&#10;React 18 + Vite 5&#10;React Query + Zustand&#10;TipTap 编辑器" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="60" y="100" width="260" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ====== Edge 层 ====== -->
+        <mxCell id="layer-edge" value="Edge / 反代" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="1720" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="nginx" value="Nginx :18888&#10;/admin /api /media /sites" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="60" y="250" width="320" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ====== App 层 ====== -->
+        <mxCell id="layer-app" value="App 层 (Docker)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="370" width="1720" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="FastAPI :8000&#10;uvicorn --reload&#10;JWT 中间件&#10;慢 API 中间件" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="60" y="400" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="worker" value="Celery Worker&#10;AI / Publish / Scheduled&#10;fork pool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="380" y="400" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="beat" value="Celery Beat&#10;定时任务&#10;(promote_scheduled 等)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="700" y="400" width="280" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ====== Storage 层 ====== -->
+        <mxCell id="layer-storage" value="Storage 层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="600" width="1080" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="pg" value="PostgreSQL 16&#10;:5432&#10;31 张表&#10;RLS 多租户隔离" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="redis" value="Redis 7&#10;:6379&#10;Celery broker + result" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="380" y="640" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="minio" value="MinIO&#10;:9000 (api)&#10;:9001 (console)&#10;对象存储 (S3 兼容)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="700" y="640" width="280" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ====== AI 层 ====== -->
+        <mxCell id="layer-ai" value="AI / LLM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1160" y="600" width="600" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="litellm" value="LiteLLM&#10;Provider 抽象&#10;统一 generate / stream 接口" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="1180" y="640" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="openai" value="OpenAI API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="1180" y="740" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="minimax" value="MiniMax API&#10;(M2.7/M3)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="1320" y="740" width="140" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ====== Build 产物 ====== -->
+        <mxCell id="layer-build" value="构建产物 (Host 可见)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="830" width="1720" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="public-dir" value="public/&#10;├─ index.html (站点首页)&#10;├─ ai-tips/&#10;│   └─ test-media-inline.html&#10;├─ assets/  ← P3.9.5 关键&#10;│   └─ 1zoYyWyACU8.png (81B)&#10;└─ site.css (HY_SITE_CSS 注入)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="60" y="870" width="380" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="step1" value="1. build_site() 渲染 pages&#10;(内存中构建所有 page objects)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="500" y="880" width="320" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="step2" value="2. DiskWriter.write_all() 写 HTML&#10;到 public/ (同步)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="500" y="950" width="320" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="step3" value="3. _inline_content_media() ← P3.9.5 关键&#10;• 扫所有 *.html 找 &lt;img src=&quot;/media/...&quot;&gt;&#10;• boto3 get_object 拉 MinIO → public/assets/&#10;• 去重 (同一 key 只下 1 次)&#10;• 改写 src 为 assets/{basename} (相对路径)&#10;• 容错: 失败只 warn, 不阻塞发布" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="860" y="870" width="500" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="result" value="结果: 产物离线可看&#10;&lt;img src=&quot;assets/1zoYyWyACU8.png&quot;&gt;&#10;不再依赖 nginx → MinIO 反代" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left" vertex="1" parent="1">
+          <mxGeometry x="1400" y="870" width="320" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- ====== 连接线 ====== -->
+        <mxCell id="c1" style="endArrow=classic;html=1" edge="1" parent="1" source="browser" target="nginx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" style="endArrow=classic;html=1" edge="1" parent="1" source="nginx" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" value="/api/v1/*" style="endArrow=classic;html=1;edgeStyle=orthogonalEdgeStyle" edge="1" parent="1" source="nginx" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" value="/media/*" style="endArrow=classic;html=1" edge="1" parent="1" source="nginx" target="minio">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" value="/sites/*" style="endArrow=classic;html=1" edge="1" parent="1" source="nginx" target="public-dir">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" style="endArrow=classic;html=1" edge="1" parent="1" source="api" target="pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" style="endArrow=classic;html=1" edge="1" parent="1" source="api" target="redis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" style="endArrow=classic;html=1" edge="1" parent="1" source="api" target="minio">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c9" style="endArrow=classic;html=1" edge="1" parent="1" source="beat" target="redis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c10" style="endArrow=classic;html=1" edge="1" parent="1" source="worker" target="redis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c11" style="endArrow=classic;html=1" edge="1" parent="1" source="worker" target="pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c12" style="endArrow=classic;html=1" edge="1" parent="1" source="worker" target="minio">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c13" style="endArrow=classic;html=1" edge="1" parent="1" source="worker" target="litellm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c14" style="endArrow=classic;html=1" edge="1" parent="1" source="litellm" target="openai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c15" style="endArrow=classic;html=1" edge="1" parent="1" source="litellm" target="minimax">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c16" value="3 步流程" style="endArrow=classic;html=1;strokeColor=#b85450;strokeWidth=2" edge="1" parent="1" source="worker" target="step1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c17" style="endArrow=classic;html=1" edge="1" parent="1" source="step1" target="step2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c18" style="endArrow=classic;html=1;strokeColor=#b85450;strokeWidth=2" edge="1" parent="1" source="step2" target="step3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c19" style="endArrow=classic;html=1" edge="1" parent="1" source="step3" target="result">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c20" style="endArrow=classic;html=1" edge="1" parent="1" source="step3" target="minio">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1100" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c21" style="endArrow=classic;html=1" edge="1" parent="1" source="result" target="public-dir">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1560" y="700" />
+              <mxPoint x="800" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

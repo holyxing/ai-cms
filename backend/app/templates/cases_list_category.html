@@ -1,0 +1,199 @@
+<link rel="stylesheet" href="<HY_ASSET_URL _name="secondary.css" />">
+
+<!-- 1. Hero：本栏目最新带 Banner 的文章头图 -->
+<section class="case-v2-hero">
+  <HY_CONTENTS _has_banner="true" _limit="1" _order="newest">
+    <img src="<HY_ITEM_BANNER />" alt="<HY_ITEM_TITLE />">
+  </HY_CONTENTS>
+  <div class="case-v2-hero-copy">
+    <div class="sub-container">
+      <p><HY_CAT_META _type="eyebrow" /></p>
+      <h1><HY_CAT_NAME /><br>实践案例</h1>
+      <span><HY_CAT_DESCRIPTION /></span>
+      <a href="#case-library">浏览实践案例</a>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 案例中心子栏目导航 -->
+<nav class="case-center-nav" aria-label="案例中心栏目">
+  <div class="sub-container">
+    <HY_CATS _type="siblings">
+      <a class="<HY_CAT_ITEM_CURRENT_CLASS />" href="<HY_CAT_ITEM_URL />"><HY_CAT_ITEM_NAME /></a>
+    </HY_CATS>
+  </div>
+</nav>
+
+<!-- 3. 实践重点（前 3 项能力） -->
+<section class="case-v2-proof">
+  <div class="sub-container">
+    <div>
+      <small>实践重点</small>
+      <strong><HY_CAT_META _type="featured_title" /></strong>
+    </div>
+    <article><b><HY_CAT_META _type="cap1_title" /></b><span><HY_CAT_META _type="cap1_desc" /></span></article>
+    <article><b><HY_CAT_META _type="cap2_title" /></b><span><HY_CAT_META _type="cap2_desc" /></span></article>
+    <article><b><HY_CAT_META _type="cap3_title" /></b><span><HY_CAT_META _type="cap3_desc" /></span></article>
+  </div>
+</section>
+
+<!-- 4. 重点实践（subtitle + summary 简化展示） -->
+<section class="case-v2-featured">
+  <div class="sub-container">
+    <div class="case-v2-heading">
+      <div>
+        <small>FEATURED PRACTICE</small>
+        <h2>重点实践</h2>
+      </div>
+      <p>从业务对象、控制方法到运营成果，展示一条可复核的落地路径。</p>
+    </div>
+    <HY_CONTENTS _has_banner="true" _limit="1" _order="newest">
+    <a href="<HY_ITEM_URL />" class="case-v2-featured-card">
+      <img src="<HY_ITEM_BANNER />" alt="<HY_ITEM_TITLE />">
+      <div>
+        <span><HY_ITEM_SUBTITLE /> · <HY_CAT_NAME /></span>
+        <h3><HY_ITEM_TITLE /></h3>
+        <p><HY_ITEM_SUMMARY /></p>
+        <b>查看完整项目路径</b>
+      </div>
+    </a>
+    </HY_CONTENTS>
+  </div>
+</section>
+
+<!-- 5. 案例库（同级栏目全部案例 + 筛选） -->
+<section class="case-v2-library" id="case-library" data-case-library>
+  <div class="sub-container">
+    <div class="case-v2-heading">
+      <div>
+        <small>SUCCESS LIBRARY</small>
+        <h2>安全与数据实践</h2>
+      </div>
+      <p>客户名称沿用现有资料；详细范围和交付信息为页面演示内容，正式发布前需由项目负责人确认。</p>
+    </div>
+    <div class="case-v2-filter" role="group" aria-label="案例类型筛选">
+      <button class="is-active" type="button" data-case-filter="all">全部案例</button>
+      <HY_CATS _type="siblings">
+        <button type="button" data-case-filter="<HY_CAT_ITEM_SLUG />"><HY_CAT_ITEM_NAME /></button>
+      </HY_CATS>
+      <span aria-live="polite" data-case-count><HY_CONTENTS_COUNT _include_siblings="true" /> 个案例</span>
+    </div>
+    <div class="case-v2-grid">
+      <HY_CONTENTS _include_siblings="true" _order="newest" _limit="50">
+      <a href="<HY_ITEM_URL />" data-case-card data-case-group="<HY_ITEM_CAT_SLUG />">
+        <div class="case-v2-media">
+          <img src="<HY_ITEM_COVER />" alt="<HY_ITEM_TITLE />" loading="lazy">
+          <span><HY_ITEM_SUBTITLE /></span>
+        </div>
+        <div class="case-v2-card-copy">
+          <small><HY_ITEM_CAT_NAME /></small>
+          <h3><HY_ITEM_TITLE /></h3>
+          <p><HY_ITEM_SUMMARY /></p>
+          <footer><span><HY_ITEM_SUBTITLE /></span><b>查看案例</b></footer>
+        </div>
+      </a>
+      </HY_CONTENTS>
+    </div>
+    <HY_CONTENTS_EMPTY>
+      <p class="empty-page">暂无案例</p>
+    </HY_CONTENTS_EMPTY>
+  </div>
+</section>
+
+<!-- 6. 方法论（4 步能力切换） -->
+<section class="case-v2-method">
+  <div class="sub-container">
+    <div class="case-v2-heading">
+      <div>
+        <small>SECURITY ASSURANCE</small>
+        <h2>以证据闭环保障落地质量</h2>
+      </div>
+      <p>案例展示不仅说明“做了什么”，还说明对象、控制、交付与运营如何形成可核查的闭环。</p>
+    </div>
+    <div class="case-v2-method-grid" data-case-method>
+      <button type="button" class="is-active" data-method-step="0">
+        <span>01</span>
+        <strong><HY_CAT_META _type="cap1_title" /></strong>
+        <small><HY_CAT_META _type="cap1_desc" /></small>
+      </button>
+      <button type="button" data-method-step="1">
+        <span>02</span>
+        <strong><HY_CAT_META _type="cap2_title" /></strong>
+        <small><HY_CAT_META _type="cap2_desc" /></small>
+      </button>
+      <button type="button" data-method-step="2">
+        <span>03</span>
+        <strong><HY_CAT_META _type="cap3_title" /></strong>
+        <small><HY_CAT_META _type="cap3_desc" /></small>
+      </button>
+      <button type="button" data-method-step="3">
+        <span>04</span>
+        <strong><HY_CAT_META _type="cap4_title" /></strong>
+        <small><HY_CAT_META _type="cap4_desc" /></small>
+      </button>
+    </div>
+    <div class="case-v2-method-status" aria-live="polite">
+      <small>当前环节</small>
+      <strong><HY_CAT_META _type="cap1_title" />：<HY_CAT_META _type="cap1_desc" /></strong>
+    </div>
+  </div>
+</section>
+
+<!-- 7. 底部 CTA -->
+<section class="case-v2-cta">
+  <div class="sub-container">
+    <div>
+      <small>AI-READY DATA PRACTICE</small>
+      <h2>从业务边界出发，规划可验证的建设路径</h2>
+      <p>结合现有数据基础、合规要求和目标场景确定试点范围。</p>
+    </div>
+    <a href="../../guanyuwomen/lianxiwomen/index.html">联系解决方案顾问</a>
+  </div>
+</section>
+
+<script>
+(function () {
+  var caseLibrary = document.querySelector('[data-case-library]');
+  if (caseLibrary) {
+    var filters = Array.prototype.slice.call(caseLibrary.querySelectorAll('[data-case-filter]'));
+    var cards = Array.prototype.slice.call(caseLibrary.querySelectorAll('[data-case-card]'));
+    var count = caseLibrary.querySelector('[data-case-count]');
+    function applyFilter(value) {
+      var visible = 0;
+      filters.forEach(function (button) {
+        var active = button.dataset.caseFilter === value;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+      cards.forEach(function (card) {
+        var show = value === 'all' || card.dataset.caseGroup === value;
+        card.hidden = !show;
+        if (show) visible += 1;
+      });
+      if (count) count.textContent = visible + ' 个案例';
+    }
+    filters.forEach(function (button) {
+      button.addEventListener('click', function () { applyFilter(button.dataset.caseFilter); });
+    });
+  }
+  var caseMethod = document.querySelector('[data-case-method]');
+  if (caseMethod) {
+    var steps = Array.prototype.slice.call(caseMethod.querySelectorAll('[data-method-step]'));
+    var status = caseMethod.parentElement.querySelector('.case-v2-method-status strong');
+    function selectMethod(index) {
+      steps.forEach(function (step, stepIndex) {
+        var active = stepIndex === index;
+        step.classList.toggle('is-active', active);
+        step.setAttribute('aria-pressed', String(active));
+      });
+      var selected = steps[index];
+      if (status && selected) {
+        status.textContent = (selected.querySelector('strong')?.textContent || '') + '：' + (selected.querySelector('small')?.textContent || '');
+      }
+    }
+    steps.forEach(function (step, index) {
+      step.addEventListener('click', function () { selectMethod(index); });
+    });
+  }
+})();
+</script>

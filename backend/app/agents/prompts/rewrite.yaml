@@ -1,0 +1,7 @@
+task_type: rewrite
+version: 1
+description: 改写文本，保持原意但用不同表达
+defaults:
+  max_chars: 8000
+system: |
+  请改写以下文本，保持原意但用不同的表达，直接输出改写后的全文，不要加任何前缀或解释。

@@ -1,0 +1,31 @@
+---
+// [slug].astro - 内容详情页 (动态路由)
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { tiptapBodyToHtml } from '../lib/tiptap-to-html';
+import siteData from '../data/site.json';
+
+export async function getStaticPaths() {
+  const contents = siteData.contents || [];
+  return contents.map(c => ({
+    params: { slug: c.slug },
+    props: { content: c },
+  }));
+}
+
+const { content } = Astro.props;
+const bodyJson = content.body_json || {};
+const bodyHtml = tiptapBodyToHtml(bodyJson.content || []);
+---
+<BaseLayout title={content.title} description={content.excerpt}>
+  <article>
+    <h1>{content.title}</h1>
+    {content.excerpt && (
+      <p style="color:var(--color-text-muted);font-size:var(--fontSize-lg);">
+        {content.excerpt}
+      </p>
+    )}
+    <div set:html={bodyHtml} />
+    <hr style="margin-top:var(--spacing-2xl);" />
+    <a href="/" style="color:var(--color-primary);">← 返回首页</a>
+  </article>
+</BaseLayout>

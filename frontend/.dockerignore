@@ -1,0 +1,9 @@
+# 构建时排除宿主机依赖与无关文件，避免 COPY . . 覆盖镜像内 node_modules
+node_modules
+dist
+.git
+*.md
+.DS_Store
+.env
+.env.*
+*.log

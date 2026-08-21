@@ -1,0 +1,102 @@
+[project]
+name = "ai-cms-backend"
+version = "0.1.0"
+description = "AI-CMS backend - FastAPI + AI agents + multi-site CMS"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+dependencies = [
+    # Web 框架
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-multipart>=0.0.18",
+    # 数据校验
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "email-validator>=2.2.0",
+    # 数据库
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    # 认证 / 安全
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt==4.0.1",  # 兼容 passlib
+    "pyjwt>=2.10.0",
+    "cryptography>=42.0.0",  # P3.1 Fernet 加密 AI API key
+    "pyotp>=2.9.0",  # P5.4 TOTP RFC 6238
+    "jieba>=0.42.1",  # P5.5 中文分词 (PG simple 不分字, jieba 拆词 OR 拼)
+    # 工具
+    "python-jose[cryptography]>=3.3.0",
+    "httpx>=0.28.0",
+    "loguru>=0.7.3",
+    "python-dotenv>=1.0.1",
+    "tenacity>=9.0.0",
+    "pyyaml>=6.0.2",
+    # 任务队列
+    "celery[redis]>=5.4.0",
+    "redis>=5.2.0",
+    # 对象存储
+    "minio>=7.2.10",
+    "pillow>=10.4.0",  # P3.6.2 媒体缩略图
+    "openpyxl>=3.1.5",  # 栏目 Excel 批量导入 (xlsx 解析)
+    # 限流
+    "slowapi>=0.1.9",
+    # AI 抽象
+    "litellm>=1.54.0",
+    # 静态生成器集成
+    "aiofiles>=24.1.0",
+    "jinja2>=3.1.4",
+    # P3.9.4+ 文档解析 (holy 反馈 #12096): docx/pdf → HTML
+    "python-docx>=1.1.0",
+    "pymupdf>=1.24.0",
+    "boto3>=1.35.0",  # 容器内绕 nginx 直读 MinIO (签名 403 走旁路)
+    "pypinyin>=0.55.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.7.0",
+    "mypy>=1.13.0",
+    "ipython>=8.29.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+# ====== uv 优化配置 ======
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.7.0",
+    "mypy>=1.13.0",
+    "ipython>=8.29.0",
+]
+
+# ====== 工具配置 ======
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+strict_optional = true
+warn_unused_ignores = true

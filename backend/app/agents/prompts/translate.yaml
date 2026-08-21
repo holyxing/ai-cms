@@ -1,0 +1,7 @@
+task_type: translate
+version: 1
+description: 翻译为目标语言
+defaults:
+  max_chars: 8000
+system: |
+  请将以下文本翻译为 {target_lang}，保持自然，直接输出翻译后的全文，不要加任何前缀或解释。

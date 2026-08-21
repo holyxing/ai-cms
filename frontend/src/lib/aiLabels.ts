@@ -1,0 +1,22 @@
+/** AI task_type → 中文 label (Dashboard / AIRuns 共用) */
+export const TASK_LABEL: Record<string, string> = {
+  rewrite: '改写',
+  expand: '扩写',
+  shorten: '缩写',
+  polish: '润色',
+  translate: '翻译',
+  draft: '起稿',
+  audit: '审查',
+  theme: '主题',
+  image: '图片',
+  optimize_design: '设计优化',
+  responsive: '响应式',
+  a11y: '无障碍',
+  seo: 'SEO',
+  format_html: 'HTML 整理',
+  site_agent: '站点助手',
+  import_docx: 'DOCX 导入',
+  import_pdf: 'PDF 导入',
+  import_paste_html: '粘贴导入',
+  extract_assets: '资产提取',
+};

@@ -1,0 +1,50 @@
+<link rel="stylesheet" href="<HY_ASSET_URL _name="secondary.css" />">
+
+<section class="article-detail-head">
+  <div class="article-detail-container">
+    <h1><HY_CONTENT_TITLE /></h1>
+    <div class="article-meta">
+      <div>
+        <time datetime="<HY_CONTENT_DATE_SHORT />"><HY_CONTENT_PUBLISH_DATE _format="YYYY.MM.DD" /></time>
+        <span><HY_CONTENT_READ_TIME /></span>
+        <span><HY_SITE_NAME /></span>
+      </div>
+      <button class="article-share-button" type="button" data-article-share aria-label="分享文章">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 10.8 15.8 6.3M8.2 13.2l7.6 4.5"></path></svg>
+        <span>分享</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="article-detail-body">
+  <div class="article-detail-container">
+    <article class="news-article">
+      <HY_CONTENT_BODY />
+    </article>
+  </div>
+</section>
+
+<section class="article-related">
+  <div class="article-detail-container">
+    <div class="article-related-head">
+      <div>
+        <p class="page-eyebrow">MORE STORIES</p>
+        <h2>更多资讯</h2>
+      </div>
+      <HY_IF _condition="cat.parent_name"><a href="<HY_CAT_URL />">返回<HY_CAT_NAME /> <i>→</i></a></HY_IF>
+      <HY_IF _condition="!cat.parent_name"><a href="<HY_CAT_URL />">返回<HY_CAT_NAME /> <i>→</i></a></HY_IF>
+    </div>
+    <div class="article-related-list">
+      <HY_CONTENTS _exclude_self="true" _order="newest" _limit="5">
+      <a href="<HY_ITEM_URL />">
+        <div><span><HY_ITEM_CAT_NAME /></span><time><HY_ITEM_PUBLISH_DATE _format="YYYY.MM.DD" /></time></div>
+        <h3><HY_ITEM_TITLE /></h3>
+        <i>→</i>
+      </a>
+      </HY_CONTENTS>
+    </div>
+  </div>
+</section>
+
+<script src="<HY_ASSET_URL _name="secondary-pages.js" />"></script>

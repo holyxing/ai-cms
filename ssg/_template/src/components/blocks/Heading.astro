@@ -1,0 +1,8 @@
+---
+// Heading.astro - 标题 block
+// 依据: docs/04a-主题与Block-规范.md §2.2
+const { block } = Astro.props;
+const level = Math.min(Math.max(block?.attrs?.level || 2, 1), 6);
+const Tag = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+---
+<Tag><slot /></Tag>

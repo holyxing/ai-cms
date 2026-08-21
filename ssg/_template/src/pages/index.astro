@@ -1,0 +1,35 @@
+---
+// index.astro - 站点首页 (内容列表)
+import BaseLayout from '../layouts/BaseLayout.astro';
+import siteData from '../data/site.json';
+
+const contents = siteData.contents || [];
+const sorted = [...contents].sort((a, b) => (b.published_at || '').localeCompare(a.published_at || ''));
+---
+<BaseLayout title={siteData.site.name} description={siteData.site.description}>
+  {siteData.site.description && (
+    <p style="color:var(--color-text-muted);font-size:var(--fontSize-lg);margin-bottom:var(--spacing-xl);">
+      {siteData.site.description}
+    </p>
+  )}
+
+  {sorted.length === 0 ? (
+    <p style="color:var(--color-text-muted);text-align:center;padding:var(--spacing-3xl);">
+      暂无内容, 等待发布...
+    </p>
+  ) : (
+    sorted.map(c => (
+      <article class="content-card">
+        <h2 style="margin-top:0;">
+          <a href={`/${c.slug}/`} style="color:var(--color-text);text-decoration:none;">
+            {c.title}
+          </a>
+        </h2>
+        {c.excerpt && <p style="color:var(--color-text-muted);">{c.excerpt}</p>}
+        <div style="color:var(--color-text-muted);font-size:var(--fontSize-sm);">
+          {c.published_at && new Date(c.published_at).toLocaleDateString('zh-CN')}
+        </div>
+      </article>
+    ))
+  )}
+</BaseLayout>

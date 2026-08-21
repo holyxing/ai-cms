@@ -1,0 +1,154 @@
+<link rel="stylesheet" href="<HY_ASSET_URL _name="secondary.css" />">
+
+<!-- Hero -->
+<section class="case-detail-v2-hero" style="--case-tone:<HY_CAT_META _type="tone" />">
+  <HY_IF _condition="content.has_banner">
+    <img src="<HY_CONTENT_META _type="banner_url" />" alt="<HY_CONTENT_TITLE />">
+  </HY_IF>
+  <HY_IF _condition="!content.has_banner">
+    <img src="<HY_CONTENT_META _type="cover_url" />" alt="<HY_CONTENT_TITLE />">
+  </HY_IF>
+  <div class="case-detail-v2-panel">
+    <div class="sub-container">
+      <div class="case-detail-v2-copy">
+        <div class="breadcrumb">
+          <a href="../../index.html">首页</a><span>/</span>
+          <HY_IF _condition="cat.parent_name">
+            <a href="<HY_CAT_PARENT_URL />"><HY_CAT_PARENT_NAME /></a><span>/</span>
+          </HY_IF>
+          <a href="<HY_CAT_URL />"><HY_CAT_NAME /></a><span>/</span>
+          <HY_CONTENT_TITLE />
+        </div>
+        <p>CASE STUDY · <HY_CONTENT_SUBTITLE /></p>
+        <h1><HY_CONTENT_TITLE /></h1>
+        <span><HY_CONTENT_SUMMARY /></span>
+        <div>
+          <b><HY_CAT_NAME /></b>
+          <time><HY_CONTENT_PUBLISH_DATE _format="YYYY.MM" /></time>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 内容导航 -->
+<nav class="case-detail-v2-nav" aria-label="案例内容导航">
+  <div class="sub-container">
+    <a class="is-active" href="#case-overview">项目概览</a>
+    <a href="#case-challenge">业务挑战</a>
+    <a href="#case-architecture">方案架构</a>
+    <a href="#case-delivery">实施交付</a>
+    <a href="#case-outcomes">建设成果</a>
+    <a href="<HY_CAT_URL />">返回案例中心</a>
+  </div>
+</nav>
+
+<main class="case-detail-v2" style="--case-tone:<HY_CAT_META _type="tone" />">
+  <!-- 项目概览 -->
+  <section class="case-detail-v2-overview" id="case-overview">
+    <div class="sub-container">
+      <div>
+        <small>PROJECT OVERVIEW</small>
+        <h2>让安全与治理要求<br>落到具体业务对象</h2>
+      </div>
+      <p><HY_CONTENT_SUMMARY /></p>
+      <dl>
+        <dt>行业场景</dt>
+        <dd><HY_CONTENT_SUBTITLE /></dd>
+        <dt>实践方向</dt>
+        <dd><HY_CAT_NAME /></dd>
+        <dt>内容状态</dt>
+        <dd><HY_CONTENT_META _type="status" /></dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- 业务挑战 ~ 建设成果：由文章 body 提供结构化 HTML -->
+  <HY_CONTENT_BODY />
+
+  <!-- 同类实践 -->
+  <section class="case-detail-v2-related">
+    <div class="sub-container">
+      <div class="case-v2-heading">
+        <div>
+          <small>RELATED PRACTICES</small>
+          <h2>同类实践</h2>
+        </div>
+        <a href="<HY_CAT_URL />">查看全部<HY_CAT_NAME /></a>
+      </div>
+      <div>
+        <HY_CONTENTS _exclude_self="true" _order="newest" _limit="2">
+        <a href="<HY_ITEM_URL />">
+          <img src="<HY_ITEM_COVER />" alt="<HY_ITEM_TITLE />">
+          <span><HY_ITEM_SUBTITLE /></span>
+          <h3><HY_ITEM_TITLE /></h3>
+          <p><HY_ITEM_SUMMARY /></p>
+        </a>
+        </HY_CONTENTS>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var caseArchitecture = document.querySelector('[data-case-architecture]');
+  if (caseArchitecture) {
+    var nodes = Array.prototype.slice.call(caseArchitecture.querySelectorAll('button'));
+    var status = caseArchitecture.parentElement.querySelector('.case-architecture-status strong');
+    function setNode(node) {
+      var next = node.classList.contains('is-active') ? null : node;
+      nodes.forEach(function (item) {
+        var active = item === next;
+        item.classList.toggle('is-active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+      caseArchitecture.classList.toggle('has-active-node', Boolean(next));
+      if (status) {
+        status.textContent = next
+          ? next.innerText.trim().replace(/\n+/g, ' · ') + '｜已聚焦对应方案链路'
+          : '选择一个节点查看聚焦状态';
+      }
+    }
+    nodes.forEach(function (node) {
+      node.setAttribute('aria-pressed', 'false');
+      node.addEventListener('click', function () { setNode(node); });
+    });
+  }
+  var caseDeliverables = Array.prototype.slice.call(document.querySelectorAll('.case-deliverable-list button'));
+  if (caseDeliverables.length) {
+    var storageKey = 'hydata-case-deliverables-' + (document.body.dataset.content || 'case');
+    var selected = [];
+    try { selected = JSON.parse(sessionStorage.getItem(storageKey) || '[]'); } catch (e) { selected = []; }
+    caseDeliverables.forEach(function (button) {
+      var active = selected.indexOf(button.textContent.trim()) >= 0;
+      button.classList.toggle('is-selected', active);
+      button.setAttribute('aria-pressed', String(active));
+      button.addEventListener('click', function () {
+        button.classList.toggle('is-selected');
+        button.setAttribute('aria-pressed', String(button.classList.contains('is-selected')));
+        var values = caseDeliverables.filter(function (item) {
+          return item.classList.contains('is-selected');
+        }).map(function (item) { return item.textContent.trim(); });
+        try { sessionStorage.setItem(storageKey, JSON.stringify(values)); } catch (e) {}
+      });
+    });
+  }
+  var caseDetailNav = document.querySelector('.case-detail-v2-nav');
+  if (caseDetailNav && 'IntersectionObserver' in window) {
+    var links = Array.prototype.slice.call(caseDetailNav.querySelectorAll('a[href^="#"]'));
+    var sections = links.map(function (link) {
+      return document.querySelector(link.getAttribute('href'));
+    }).filter(Boolean);
+    var navObserver = new IntersectionObserver(function (entries) {
+      var visible = entries.filter(function (e) { return e.isIntersecting; })
+        .sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
+      if (!visible) return;
+      links.forEach(function (link) {
+        link.classList.toggle('is-active', link.getAttribute('href') === '#' + visible.target.id);
+      });
+    }, { rootMargin: '-22% 0px -62% 0px', threshold: [0, 0.2, 0.5] });
+    sections.forEach(function (section) { navObserver.observe(section); });
+  }
+})();
+</script>

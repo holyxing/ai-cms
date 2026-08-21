@@ -1,0 +1,47 @@
+---
+// BaseLayout.astro - 站点公共 layout
+// 依据: docs/12-P2-决策.md §B7 (Last built)
+import siteData from '../data/site.json';
+import '../styles/theme.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const siteName = siteData.site.name;
+const lastBuild = siteData.last_build;
+const fullTitle = title === siteName ? title : `${title} | ${siteName}`;
+const desc = description || siteData.site.description || '';
+---
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{fullTitle}</title>
+  {desc && <meta name="description" content={desc} />}
+  <meta property="og:title" content={fullTitle} />
+  {desc && <meta property="og:description" content={desc} />}
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" style="text-decoration:none;color:var(--color-text);font-size:var(--fontSize-xl);font-weight:600;">
+        {siteName}
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+    <slot />
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      Last built: {lastBuild}
+    </div>
+  </footer>
+</body>
+</html>

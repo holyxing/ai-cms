@@ -1,0 +1,124 @@
+<link rel="stylesheet" href="<HY_ASSET_URL _name="secondary.css" />">
+
+<section class="news-top-hero" data-news-top aria-roledescription="轮播图">
+  <div class="news-top-slides">
+    <HY_CONTENTS _banner="true" _order="newest" _limit="20">
+      <article class="news-top-slide" data-news-top-slide aria-hidden="true">
+        <img src="<HY_ITEM_BANNER />" alt="<HY_ITEM_TITLE />">
+        <div class="news-top-shade" aria-hidden="true"></div>
+        <div class="sub-container news-top-inner">
+          <div class="breadcrumb">
+            <a href="../index.html">首页</a><span>/</span>
+            <HY_IF _condition="cat.parent_name"><a href="<HY_CAT_PARENT_URL />"><HY_CAT_PARENT_NAME /></a><span>/</span><HY_CAT_NAME /></HY_IF>
+            <HY_IF _condition="!cat.parent_name"><a href="<HY_CAT_URL />"><HY_CAT_NAME /></a><span>/</span><HY_ITEM_CAT_NAME /></HY_IF>
+          </div>
+          <div class="news-top-copy">
+            <span><HY_ITEM_CAT_NAME /></span>
+            <time><HY_ITEM_PUBLISH_DATE _format="YYYY.MM.DD" /></time>
+            <h1><HY_ITEM_TITLE /></h1>
+            <p><HY_ITEM_SUMMARY /></p>
+            <a href="<HY_ITEM_URL />">阅读头条 <i>→</i></a>
+          </div>
+        </div>
+      </article>
+    </HY_CONTENTS>
+  </div>
+  <button class="news-top-arrow news-top-arrow--prev" type="button" data-news-top-prev aria-label="上一条头条"><span aria-hidden="true">‹</span></button>
+  <button class="news-top-arrow news-top-arrow--next" type="button" data-news-top-next aria-label="下一条头条"><span aria-hidden="true">›</span></button>
+  <div class="news-top-dots" role="tablist" aria-label="头条新闻切换" data-news-top-dots></div>
+</section>
+
+<section class="news-catalog">
+  <div class="sub-container">
+    <div class="news-toolbar">
+      <div>
+        <p class="page-eyebrow">HYDATA NEWSROOM</p>
+        <h2>新闻资讯</h2>
+        <span>共 <HY_CONTENTS_COUNT _include_children="true" /> 条内容</span>
+      </div>
+      <nav aria-label="新闻栏目筛选">
+        <HY_CATS _type="siblings">
+          <a class="<HY_CAT_ITEM_CURRENT_CLASS />" href="<HY_CAT_ITEM_URL />"><HY_CAT_ITEM_NAME /></a>
+        </HY_CATS>
+      </nav>
+    </div>
+
+    <div class="news-card-grid">
+      <HY_CONTENTS _include_children="true" _limit="10" _order="newest">
+        <a class="news-card" href="<HY_ITEM_URL />">
+          <div class="news-card-media">
+            <HY_IF _condition="content.has_cover">
+              <img src="<HY_ITEM_COVER />" alt="<HY_ITEM_TITLE />" loading="lazy">
+            </HY_IF>
+            <span><HY_ITEM_CAT_NAME /></span>
+          </div>
+          <div class="news-card-copy">
+            <small><HY_ITEM_CAT_NAME /></small>
+            <h3><HY_ITEM_TITLE /></h3>
+            <p><HY_ITEM_SUMMARY /></p>
+            <footer>
+              <time><HY_ITEM_PUBLISH_DATE _format="YYYY.MM.DD" /></time>
+              <i>→</i>
+            </footer>
+          </div>
+        </a>
+      </HY_CONTENTS>
+    </div>
+
+    <HY_CONTENTS_EMPTY>
+      <p class="empty-page">暂无新闻</p>
+    </HY_CONTENTS_EMPTY>
+
+    <HY_CONTENTS_PAGINATION _show_numbers="true" />
+  </div>
+</section>
+
+<script>
+(function () {
+  var host = document.querySelector('[data-news-top]');
+  if (!host) return;
+  var slides = Array.prototype.slice.call(host.querySelectorAll('[data-news-top-slide]'));
+  var dotsHost = host.querySelector('[data-news-top-dots]');
+  if (!slides.length) {
+    host.style.display = 'none';
+    return;
+  }
+  slides.forEach(function (slide, index) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('data-news-top-dot', String(index));
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-label', '切换到第 ' + (index + 1) + ' 条头条');
+    dotsHost && dotsHost.appendChild(btn);
+  });
+  var dots = Array.prototype.slice.call(host.querySelectorAll('[data-news-top-dot]'));
+  var activeIndex = 0;
+  function show(nextIndex) {
+    activeIndex = (nextIndex + slides.length) % slides.length;
+    slides.forEach(function (slide, index) {
+      var active = index === activeIndex;
+      slide.classList.toggle('is-active', active);
+      slide.setAttribute('aria-hidden', String(!active));
+    });
+    dots.forEach(function (dot, index) {
+      var active = index === activeIndex;
+      dot.classList.toggle('is-active', active);
+      dot.setAttribute('aria-selected', String(active));
+      dot.tabIndex = active ? 0 : -1;
+    });
+  }
+  var prev = host.querySelector('[data-news-top-prev]');
+  var next = host.querySelector('[data-news-top-next]');
+  if (slides.length < 2) {
+    if (prev) prev.disabled = true;
+    if (next) next.disabled = true;
+  } else {
+    prev && prev.addEventListener('click', function () { show(activeIndex - 1); });
+    next && next.addEventListener('click', function () { show(activeIndex + 1); });
+    dots.forEach(function (dot, index) {
+      dot.addEventListener('click', function () { show(index); });
+    });
+  }
+  show(0);
+})();
+</script>

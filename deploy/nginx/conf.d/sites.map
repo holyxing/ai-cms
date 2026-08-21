@@ -1,0 +1,5 @@
+# B5 P2.5 host-based 域名 -> slug 映射
+# 后端 add/remove domain 时自动重写此文件 + reload nginx
+# 格式: <domain> <slug>;
+# 例:    example.com my-site;
+#        www.example.com my-site;

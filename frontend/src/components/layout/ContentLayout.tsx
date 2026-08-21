@@ -240,8 +240,8 @@ export function ContentLayout() {
         <main className="flex flex-1 flex-col overflow-hidden">
           {/* P3.8: 多 tab 栏 (ContentLayout 也集成) */}
           <TabBar />
-          {/* P3.9.6+ (holy 反馈 #12705): 主区加 px-4 py-3, 避免内容/边距太紧 (默认 0 padding 让子页肩饰顶边距) */}
-          <div className="flex-1 overflow-y-auto bg-secondary/20 px-4 py-3">
+          {/* 左菜单 → 工作区间距 20px（px-5）；子页勿再叠加水平 padding */}
+          <div className="flex-1 overflow-y-auto bg-secondary/20 px-5 py-3">
             <ErrorBoundary>
               <Outlet />
             </ErrorBoundary>

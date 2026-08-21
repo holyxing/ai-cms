@@ -388,9 +388,7 @@ export function CategoryContentPage() {
 
   // === 渲染: 完整页面 ===
   return (
-    <div className="p-6">
-      {/* 面包屑 */}
-      {/* P3.9.1+ 去除面包屑冗余 (与标题区 + 顶 nav 重复), 只显示父级路径 (不含当前栏目) */}
+    <div className="py-6">
       {breadcrumbs.length > 1 && (
         <nav className="mb-1.5 flex items-center gap-1 text-[10.5px] text-muted-foreground">
           {breadcrumbs.slice(0, -1).map((b, i) => (

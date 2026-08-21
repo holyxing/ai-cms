@@ -427,7 +427,7 @@ function SiteAssetsView({ siteId: propSiteId, embedded = false }: SiteAssetsView
       ref={dropRef}
       className={cn(
         'relative space-y-4',
-        embedded ? 'p-2' : 'p-6',
+        embedded ? 'p-2' : 'py-5',
         isDragging && 'ring-2 ring-blue-400 ring-offset-2 ring-offset-background',
       )}
     >

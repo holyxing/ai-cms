@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Download, Upload, RotateCcw, Save, Loader2, Search, FileText,
 } from 'lucide-react';
-import { Button, Badge, Label } from '@/components/ui';
+import { Button, Badge, Label, Input } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { aiApi, type AIPromptItem } from '@/api/ai';
 import { useAuthStore } from '@/stores/auth';
@@ -29,6 +29,8 @@ export function PromptsPanel() {
   const [q, setQ] = useState('');
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
+  const [draftTemp, setDraftTemp] = useState('');
+  const [draftMaxTokens, setDraftMaxTokens] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['ai-prompts'],
@@ -51,17 +53,31 @@ export function PromptsPanel() {
 
   const selected = items.find((p) => p.key === selectedKey) || null;
 
-  const select = (p: AIPromptItem) => {
+  const applyRow = (p: AIPromptItem) => {
     setSelectedKey(p.key);
     setDraft(p.content);
+    setDraftTemp(p.temperature == null ? '' : String(p.temperature));
+    setDraftMaxTokens(String(p.max_tokens ?? 10240));
   };
 
+  const select = (p: AIPromptItem) => {
+    applyRow(p);
+  };
+
+  const parsedTemp = draftTemp.trim() === '' ? null : Number(draftTemp);
+  const parsedMax = draftMaxTokens.trim() === '' ? null : Number(draftMaxTokens);
+
   const saveMut = useMutation({
-    mutationFn: () => aiApi.updatePrompt(selectedKey!, draft),
+    mutationFn: () =>
+      aiApi.updatePrompt(selectedKey!, {
+        content: draft,
+        temperature: Number.isFinite(parsedTemp as number) ? parsedTemp : null,
+        max_tokens: Number.isFinite(parsedMax as number) ? parsedMax! : (selected?.max_tokens ?? 10240),
+      }),
     onSuccess: (row) => {
       toast.success('已保存');
       qc.invalidateQueries({ queryKey: ['ai-prompts'] });
-      setDraft(row.content);
+      applyRow(row);
     },
     onError: (e: Error) => toast.error(e.message || '保存失败'),
   });
@@ -71,7 +87,7 @@ export function PromptsPanel() {
     onSuccess: (row) => {
       toast.success('已重置为内置版本');
       qc.invalidateQueries({ queryKey: ['ai-prompts'] });
-      setDraft(row.content);
+      applyRow(row);
     },
     onError: (e: Error) => toast.error(e.message || '重置失败'),
   });
@@ -109,7 +125,11 @@ export function PromptsPanel() {
     }
   };
 
-  const dirty = selected ? draft !== selected.content : false;
+  const dirty = !!selected && (
+    draft !== selected.content
+    || draftTemp !== (selected.temperature == null ? '' : String(selected.temperature))
+    || draftMaxTokens !== String(selected.max_tokens ?? 10240)
+  );
 
   return (
     <div className="flex h-full min-h-[480px] flex-col gap-3">
@@ -255,6 +275,38 @@ export function PromptsPanel() {
                 </div>
               </div>
               <div className="flex min-h-0 flex-1 flex-col p-3">
+                <div className="mb-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="mb-1.5 text-[11px]">温度 (Temperature)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={2}
+                      step={0.1}
+                      value={draftTemp}
+                      onChange={(e) => setDraftTemp(e.target.value)}
+                      readOnly={!canEdit}
+                      placeholder="0.2–0.7"
+                      className="h-8 text-xs"
+                    />
+                    <p className="mt-1 text-[10px] text-muted-foreground">0 更稳，2 更随机。留空用内置默认。</p>
+                  </div>
+                  <div>
+                    <Label className="mb-1.5 text-[11px]">最大输出 token</Label>
+                    <Input
+                      type="number"
+                      min={256}
+                      max={32000}
+                      step={256}
+                      value={draftMaxTokens}
+                      onChange={(e) => setDraftMaxTokens(e.target.value)}
+                      readOnly={!canEdit}
+                      placeholder="10240"
+                      className="h-8 text-xs"
+                    />
+                    <p className="mt-1 text-[10px] text-muted-foreground">默认 10240（标题类 512）。范围 256–32000。</p>
+                  </div>
+                </div>
                 <Label className="mb-1.5 text-[11px]">Prompt 正文</Label>
                 <textarea
                   value={draft}

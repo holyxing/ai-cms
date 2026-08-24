@@ -4,6 +4,7 @@ from app.agents.prompts.service import (
     ensure_prompts_seeded,
     resolve_prompt_content,
     resolve_task_system_prompt,
+    resolve_llm_params,
 )
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "ensure_prompts_seeded",
     "resolve_prompt_content",
     "resolve_task_system_prompt",
+    "resolve_llm_params",
 ]

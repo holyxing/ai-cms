@@ -75,17 +75,19 @@ _EXTRA: list[dict[str, Any]] = [
     {
         "key": "enhance.content",
         "label": "HTML 正文优化",
-        "description": "错别字 / 润色 / 段落",
+        "description": "错别字 / 润色，不改样式与布局",
         "category": "enhance",
         "task_type": "polish",
         "variables": [],
         "content": (
-            "你是中文内容编辑。请优化下面 HTML 正文的文字表达。\n"
+            "你是中文内容编辑。只优化下面 HTML 里的文字表达，禁止改原型的样式和布局。\n"
             "要求：\n"
             "1. 可修正错别字、病句、标点，润色修饰词，不改变原意与事实\n"
-            "2. 必须保留全部业务文字要点，以及全部 <img>/<video>/<audio>/<iframe> 等媒体标签与 URL\n"
-            "3. 若出现 @@AICMS_MEDIA_N@@ 占位符，必须原样保留、禁止删除\n"
-            "4. 可微调段落划分，但不要删除媒体；直接输出完整 HTML，不要 markdown 代码块"
+            "2. 必须保留全部标签层级与顺序：不要增删/包裹/拆分/合并区块，不要改标签名\n"
+            "3. 必须原样保留全部 class、id、style、data-* 以及媒体标签的 src/srcset/poster 等属性\n"
+            "4. 禁止改 CSS、禁止改布局（grid/flex/宽高/间距/定位/圆角），禁止加删 class 或 inline style\n"
+            "5. 若出现 @@AICMS_MEDIA_N@@ 占位符，必须原样保留、禁止删除\n"
+            "6. 直接输出完整 HTML 片段，不要 markdown 代码块，不要 html/body 文档壳"
         ),
     },
     {
@@ -153,13 +155,52 @@ def _load_yaml_tasks() -> list[dict[str, Any]]:
     return items
 
 
+# LLM 默认参数按 category / task_type 分配
+def builtin_llm_defaults(
+    category: str,
+    task_type: str | None,
+    key: str = "",
+) -> tuple[float, int]:
+    """内置温度、最大输出 token。"""
+    if key in ("quick.title_candidates", "quick.summary"):
+        return 0.7, 512
+    if task_type == "theme":
+        return 0.3, 1024
+    if task_type == "site_agent":
+        return 0.4, 2048
+    if task_type == "audit":
+        return 0.2, 2048
+    if category == "import" or task_type == "format_html":
+        return 0.2, 10240
+    if task_type in ("optimize_design", "responsive", "a11y", "seo", "extract_assets"):
+        return 0.2, 10240
+    if task_type in ("polish", "rewrite", "expand", "shorten", "translate", "draft"):
+        return 0.7, 10240
+    if category == "enhance":
+        return 0.7, 10240
+    if category == "quick":
+        return 0.2, 10240
+    return 0.7, 4096
+
+
+def _attach_llm_defaults(item: dict[str, Any]) -> dict[str, Any]:
+    t, m = builtin_llm_defaults(
+        str(item.get("category") or "task"),
+        item.get("task_type"),
+        str(item.get("key") or ""),
+    )
+    item.setdefault("temperature", t)
+    item.setdefault("max_tokens", m)
+    return item
+
+
 def builtin_catalog() -> list[dict[str, Any]]:
     """全部内置 prompt（YAML 任务 + EXTRA）。"""
     by_key: dict[str, dict[str, Any]] = {}
     for item in _load_yaml_tasks():
-        by_key[item["key"]] = item
+        by_key[item["key"]] = _attach_llm_defaults(item)
     for item in _EXTRA:
-        by_key[item["key"]] = dict(item)
+        by_key[item["key"]] = _attach_llm_defaults(dict(item))
     return list(by_key.values())
 
 

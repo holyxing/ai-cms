@@ -155,16 +155,21 @@ async def ai_theme(run, db, provider_model) -> dict:
     )
     model = run.model or "qwen2.5:1.5b"
 
-    from app.agents.prompts import resolve_task_system_prompt
+    from app.agents.prompts import resolve_task_system_prompt, resolve_llm_params
     system_prompt = await resolve_task_system_prompt(db, "theme", _HARDCODED_THEME_PROMPT)
 
     accumulated: list[str] = []
     total_prompt_tokens = 0
     total_completion_tokens = 0
+    temperature, max_out = await resolve_llm_params(
+        db, "task.theme", task_type="theme", default_max_tokens=1024,
+    )
     async for chunk in provider.stream(
         [LLMMessage(role="system", content=system_prompt),
          LLMMessage(role="user", content=user_prompt)],
         model=model,
+        temperature=temperature,
+        max_tokens=max_out,
     ):
         if chunk.delta:
             accumulated.append(chunk.delta)

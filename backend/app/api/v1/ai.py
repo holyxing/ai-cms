@@ -631,6 +631,8 @@ async def list_supported_tasks(user: User = Depends(get_current_user)):
 # ====== Prompt 统一管理（可读；改/导入需超管，方便外部工具对接） ======
 class AIPromptUpdate(BaseModel):
     content: str
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
 
 
 class AIPromptImportBody(BaseModel):
@@ -715,7 +717,15 @@ async def update_ai_prompt(
         raise Forbidden("仅超管可修改系统 Prompt")
     await ensure_prompts_seeded(db)
     try:
-        row = await update_prompt(db, key, body.content, user_id=user.id)
+        row = await update_prompt(
+            db,
+            key,
+            body.content,
+            user_id=user.id,
+            temperature=body.temperature,
+            max_tokens=body.max_tokens,
+            fields_set=body.model_fields_set,
+        )
     except KeyError:
         raise HTTPException(status_code=404, detail="prompt 不存在")
     return ok(prompt_to_dict(row))

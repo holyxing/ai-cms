@@ -91,7 +91,7 @@ async def ai_audit(run, db, provider_model) -> dict:
     await db.flush()
 
     # P3.4: YAML + DB 统一管理
-    from app.agents.prompts import resolve_task_system_prompt
+    from app.agents.prompts import resolve_task_system_prompt, resolve_llm_params
     _HARDCODED_AUDIT_PROMPT = (
         "你是一名严谨的中文内容审计专家. "
         "对给定内容做 4 维度检查:\n"
@@ -116,10 +116,15 @@ async def ai_audit(run, db, provider_model) -> dict:
     accumulated: list[str] = []
     total_prompt_tokens = 0
     total_completion_tokens = 0
+    temperature, max_out = await resolve_llm_params(
+        db, "task.audit", task_type="audit", default_max_tokens=2048,
+    )
     async for chunk in provider.stream(
         [LLMMessage(role="system", content=system_prompt),
          LLMMessage(role="user", content=user_prompt)],
         model=model,
+        temperature=temperature,
+        max_tokens=max_out,
     ):
         if chunk.delta:
             accumulated.append(chunk.delta)

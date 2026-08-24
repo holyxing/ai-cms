@@ -202,7 +202,7 @@ export function LayoutEditPage() {
   const layout = layoutQ.data;
 
   return (
-    <div className="px-6 py-6 lg:px-8 lg:py-8 max-w-[1400px] mx-auto">
+    <div className="py-5">
       {/* 头部 */}
       <div className="mb-5 flex items-start gap-3 border-b pb-4">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -282,11 +282,11 @@ export function LayoutEditPage() {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
         {/* 主编辑区 */}
         <div className="space-y-4">
           <Card className="shadow-sm">
-            <CardContent className="space-y-3 p-6">
+            <CardContent className="space-y-3 p-4">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-medium">HTML 模板源码</Label>
                 {/* 2 档 tab (P3.9.2+: AI 设计改为右下角 popup, 只剩 HTML / 预览) */}

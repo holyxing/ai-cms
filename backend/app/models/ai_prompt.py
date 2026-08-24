@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -33,6 +33,10 @@ class AIPrompt(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # 内置原文，用于「重置」
     builtin_content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # LLM 采样；空则用内置默认温度
+    temperature: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # 最大输出 token；空则用内置默认长度
+    max_tokens: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     # 模板变量名，如 ["target_lang", "word_count"]
     variables: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

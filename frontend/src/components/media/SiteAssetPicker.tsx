@@ -222,9 +222,9 @@ export function SiteAssetPicker({ open, siteId, multiple = false, onClose, onPic
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && setQ(q)}
             placeholder="搜索文件名…"
-            className="h-8 max-w-xs text-xs"
+            className="h-8 min-w-0 flex-1 text-xs"
           />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {uploading > 0 && (
               <span className="flex items-center gap-1 text-[11px] text-blue-700">
                 <Loader2 className="h-3 w-3 animate-spin" />

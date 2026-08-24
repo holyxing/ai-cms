@@ -154,7 +154,7 @@ async def ai_site_agent(run, db, provider_model) -> dict:
     generate_step.started_at = datetime.now(timezone.utc)
 
     # P3.4: YAML + DB
-    from app.agents.prompts import resolve_task_system_prompt
+    from app.agents.prompts import resolve_task_system_prompt, resolve_llm_params
     _HARDCODED_PROMPT = (
         "你是 AI-CMS 的「站点 AI 智能体」. "
         "帮助用户创建/管理/发布站点. "
@@ -186,7 +186,12 @@ async def ai_site_agent(run, db, provider_model) -> dict:
         messages.append(LLMMessage(role=m["role"], content=m["content"]))
     messages.append(LLMMessage(role="user", content=user_input))
 
-    async for chunk in provider.stream(messages, model=model):
+    temperature, max_out = await resolve_llm_params(
+        db, "task.site_agent", task_type="site_agent", default_max_tokens=2048,
+    )
+    async for chunk in provider.stream(
+        messages, model=model, temperature=temperature, max_tokens=max_out,
+    ):
         if chunk.delta:
             accumulated.append(chunk.delta)
             generate_step.delta = "".join(accumulated[-300:])

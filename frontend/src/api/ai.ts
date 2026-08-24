@@ -176,9 +176,12 @@ export const aiApi = {
   getPrompt: (key: string) =>
     api.get<{ data: AIPromptItem }>(`/ai/prompts/${encodeURIComponent(key)}`).then((r) => r.data.data),
 
-  updatePrompt: (key: string, content: string) =>
+  updatePrompt: (
+    key: string,
+    payload: { content: string; temperature: number | null; max_tokens: number | null },
+  ) =>
     api
-      .patch<{ data: AIPromptItem }>(`/ai/prompts/${encodeURIComponent(key)}`, { content })
+      .patch<{ data: AIPromptItem }>(`/ai/prompts/${encodeURIComponent(key)}`, payload)
       .then((r) => r.data.data),
 
   resetPrompt: (key: string) =>
@@ -207,6 +210,8 @@ export interface AIPromptItem {
   task_type: string | null;
   content: string;
   builtin_content: string;
+  temperature: number | null;
+  max_tokens: number | null;
   variables: string[];
   version: number;
   is_customized: boolean;
@@ -225,6 +230,8 @@ export interface AIPromptExportBundle {
     category: string;
     task_type?: string | null;
     content: string;
+    temperature?: number | null;
+    max_tokens?: number | null;
     variables?: string[];
     is_customized?: boolean;
     version?: number;

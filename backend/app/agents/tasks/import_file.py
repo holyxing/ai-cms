@@ -382,7 +382,7 @@ async def _import_impl(run: AIRun, db: AsyncSession, provider_model, task_type: 
     # 3. (可选) AI 排版 - 走 stream() 接口 (跟 format_html 一致, 边推边记 token)
     if apply_layout and html:
         try:
-            from app.agents.prompts import resolve_prompt_content
+            from app.agents.prompts import resolve_prompt_content, resolve_llm_params
             layout_prompt = await resolve_prompt_content(
                 db, "import.layout", fallback=LAYOUT_PROMPT_FALLBACK,
             )
@@ -395,11 +395,15 @@ async def _import_impl(run: AIRun, db: AsyncSession, provider_model, task_type: 
                 model = run.model or "qwen2.5:1.5b"
                 # 输出接近输入；默认 8k 仍可能截断长文
                 layout_max_tokens = min(32_000, max(8_192, int(min(len(html), 30000) * 1.25) + 2_048))
+                temperature, layout_max_tokens = await resolve_llm_params(
+                    db, "import.layout", task_type="format_html",
+                    default_max_tokens=layout_max_tokens,
+                )
                 accumulated: list[str] = []
                 total_prompt_tokens = 0
                 total_completion_tokens = 0
                 async for chunk in provider.stream(
-                    messages, model=model, temperature=0.2, max_tokens=layout_max_tokens,
+                    messages, model=model, temperature=temperature, max_tokens=layout_max_tokens,
                 ):
                     if chunk.delta:
                         accumulated.append(chunk.delta)

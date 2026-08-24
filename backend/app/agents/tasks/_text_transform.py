@@ -262,7 +262,7 @@ async def _text_transform_impl(
         }
 
     # prompt (P3.4: YAML + DB 统一管理; user_prompt / prompt_key 可覆盖)
-    from app.agents.prompts import resolve_prompt_content, resolve_task_system_prompt
+    from app.agents.prompts import resolve_prompt_content, resolve_task_system_prompt, resolve_llm_params
 
     if user_instruction and user_instruction.strip():
         system_prompt = (
@@ -314,7 +314,10 @@ async def _text_transform_impl(
     model = run.model or "qwen2.5:1.5b"
 
     max_out = _max_out_tokens(task_type, len(original_text))
-    temperature = 0.2 if task_type in ("format_html", "polish") else 0.7
+    param_key = str(prompt_key) if prompt_key else f"task.{operation}"
+    temperature, max_out = await resolve_llm_params(
+        db, param_key, task_type=task_type, default_max_tokens=max_out,
+    )
 
     accumulated: list[str] = []
     total_prompt_tokens = 0

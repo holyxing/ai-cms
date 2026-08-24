@@ -39,7 +39,7 @@ const ACTIONS: {
   icon: typeof Sparkles;
 }[] = [
   { kind: 'style', label: '样式优化', desc: '去壳去样式，只留 p/图文', icon: Palette },
-  { kind: 'content', label: '正文优化', desc: '错别字 / 润色 / 段落', icon: FileText },
+  { kind: 'content', label: '正文优化', desc: '错别字 / 润色，不改样式布局', icon: FileText },
   { kind: 'images', label: '图片本地化', desc: '外链图入库站点资源', icon: ImageIcon },
   { kind: 'all', label: '一键全增强', desc: '样式 → 正文 → 图片', icon: Layers },
 ];

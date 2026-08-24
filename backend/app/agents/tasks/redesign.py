@@ -162,7 +162,7 @@ async def _redesign_impl(
         raise ValueError(f"html 超过 {MAX_INPUT_CHARS} 字符限制, 请简化模板")
 
     # === 2. generate (走 LLM 流式) ===
-    from app.agents.prompts import resolve_task_system_prompt
+    from app.agents.prompts import resolve_task_system_prompt, resolve_llm_params
 
     # 加载 YAML/DB prompt
     system_prompt = await resolve_task_system_prompt(db, task_type, "")
@@ -201,7 +201,12 @@ async def _redesign_impl(
     accumulated: list[str] = []
     total_prompt_tokens = 0
     total_completion_tokens = 0
-    async for chunk in provider.stream(messages, model=model):
+    temperature, max_out = await resolve_llm_params(
+        db, f"task.{task_type}", task_type=task_type, default_max_tokens=10240,
+    )
+    async for chunk in provider.stream(
+        messages, model=model, temperature=temperature, max_tokens=max_out,
+    ):
         if chunk.delta:
             accumulated.append(chunk.delta)
             gen_step.delta = "".join(accumulated[-200:])

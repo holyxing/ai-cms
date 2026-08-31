@@ -124,6 +124,58 @@ MAX_INCLUDE_DEPTH = 10
 
 # 循环排序选项
 CONTENTS_ORDERS = ("newest", "oldest", "hits", "random")
+_NEWEST_ORDERS = frozenset({"newest", "date", "published", "published_at", "desc"})
+_HY_CONTENTS_OPEN_RE = re.compile(r"<HY_CONTENTS\b([^>]*)>", re.IGNORECASE)
+
+
+def force_hy_contents_order_newest(html: str) -> str:
+    """栏目/首页列表：HY_CONTENTS 补上发布日期倒序。
+
+    - 无 _order，或 _order 不是 hits/random → 写成 newest
+    - 无 _order_by → 写成 published（不覆盖已有 created/updated）
+    """
+    if not html:
+        return html
+
+    def repl(m: re.Match) -> str:
+        attrs = m.group(1)
+        order_m = re.search(r'\b_order\s*=\s*(["\'])([^"\']*)\1', attrs, re.I)
+        order_val = (order_m.group(2) if order_m else "").strip().lower()
+        if order_val not in ("hits", "random"):
+            if order_m:
+                attrs = re.sub(
+                    r'\b_order\s*=\s*(["\'])[^"\']*\1',
+                    '_order="newest"',
+                    attrs,
+                    flags=re.I,
+                )
+            else:
+                attrs = f'{attrs.rstrip()} _order="newest"' if attrs.strip() else ' _order="newest"'
+        if not re.search(r"\b_order_by\s*=", attrs, re.I) and order_val not in ("hits", "random"):
+            attrs = f'{attrs.rstrip()} _order_by="published"'
+        return f"<HY_CONTENTS{attrs}>"
+
+    return _HY_CONTENTS_OPEN_RE.sub(repl, html)
+
+
+def _content_sort_key(c: ContentCtx, order_by: str) -> str:
+    """newest/oldest 用哪一个时间字段。"""
+    if order_by in ("created", "created_at", "create"):
+        return getattr(c, "created_at", None) or ""
+    if order_by in ("updated", "updated_at", "update", "modified"):
+        return getattr(c, "updated_at", None) or ""
+    # published / publish / published_at / date（默认）
+    return (
+        getattr(c, "published_at", None)
+        or getattr(c, "datetime", None)
+        or ""
+    )
+
+
+def _content_pub_sort_key(c: ContentCtx) -> str:
+    return _content_sort_key(c, "published")
+
+
 CATS_TYPES = ("children", "siblings", "all", "root")
 
 # XSS 黑名单标签（用户写在 layout 里的）
@@ -221,6 +273,8 @@ class ContentCtx:
     banner_url: str = ""
     author: str = ""
     published_at: str = ""
+    created_at: str = ""
+    updated_at: str = ""
     date_short: str = ""  # P3.8.9+: YYYY-MM-DD 短日期 (HY_ITEM_DATE 渲染)
     date_year: str = ""  # P3.8.9+++: YYYY 年份 (HY_ITEM_DATE_YEAR 渲染)
     hits: int = 0
@@ -335,11 +389,12 @@ class RenderContext:
         - _cat: slug/id
         - _include_children: 含子栏目（父栏目页）
         - _include_siblings: 含同级兄弟栏目文章（案例中心子栏目列表用）
-        - _featured / _banner: 仅头条；_banner 默认再要求 Banner 图且每栏目 1 条
+        - _featured / _banner: 仅头条；_banner 默认再要求 Banner 图；父栏目轮播默认每子栏 1 条
         - _has_cover: 必须有缩略图
         - _has_banner: 必须有 Banner 图
         - _limit_per_cat: 每个栏目最多 N 条（排序后截断）
         - _order: newest | oldest | hits | random
+        - _order_by: published | created | updated（newest/oldest 用哪个时间，默认 published）
         """
         if self.contents_data:
             items = list(self.contents_data)
@@ -420,21 +475,30 @@ class RenderContext:
         if want_cover:
             items = [c for c in items if c.cover_url or getattr(c, "has_cover", False)]
 
-        order = attrs.get("_order", "newest")
-        if order == "newest":
-            items.sort(key=lambda c: c.published_at, reverse=True)
+        order = (attrs.get("_order") or "newest").strip().lower()
+        order_by = (attrs.get("_order_by") or attrs.get("_sort_by") or "published").strip().lower()
+        if order in _NEWEST_ORDERS:
+            items.sort(key=lambda c: _content_sort_key(c, order_by), reverse=True)
         elif order == "oldest":
-            items.sort(key=lambda c: c.published_at)
+            items.sort(key=lambda c: _content_sort_key(c, order_by))
         elif order == "hits":
             items.sort(key=lambda c: c.hits, reverse=True)
         elif order == "random":
             import random
             random.shuffle(items)
+        else:
+            # 未知 _order 仍按发布日期倒序，避免栏目列表顺序随机
+            items.sort(key=lambda c: _content_sort_key(c, order_by), reverse=True)
 
         if "_limit_per_cat" in attrs:
             limit_per_cat = attrs.get("_limit_per_cat")
         elif banner:
-            limit_per_cat = "1"
+            # 父栏目（有子栏）轮播：每子栏 1 条头条；叶子栏目允许多条（由 _limit 截断）
+            cat_id = self.category.id if self.category else ""
+            has_children = bool(
+                cat_id and any(c.parent_id == cat_id for c in self.cats_data)
+            )
+            limit_per_cat = "1" if has_children else None
         else:
             limit_per_cat = None
         if limit_per_cat is not None and str(limit_per_cat).strip() != "":
@@ -458,6 +522,7 @@ class RenderContext:
         attrs keys (业务属性都加 _ 前缀):
         - _limit: int
         - _order: newest | oldest | hits | random
+        - _order_by: published | created | updated
         - _cat: slug 或 id (按栏目过滤, 不传则按当前 category)
         - _page: int (分页；缺省用 ctx.current_page)
         - _include_children / _featured / _has_cover / _has_banner / _banner / _limit_per_cat
@@ -1185,6 +1250,25 @@ def estimate_read_time_label(html: str) -> str:
     return f"约 {minutes} 分钟阅读"
 
 
+def _page_rel_prefix(ctx: RenderContext) -> str:
+    """当前 HTML 相对 public 根目录的深度前缀（index.html → ''，about/x.html → '../'）"""
+    page_path = getattr(ctx, "page_path", None) or ""
+    depth = page_path.count("/") if page_path else 0
+    return "../" * depth
+
+
+def _format_site_url(url: str, ctx: RenderContext) -> str:
+    """站内 URL：静态发布用相对路径；管理端 /sites/{slug}/ 保持绝对路径。"""
+    if not url:
+        return ""
+    u = url.strip()
+    if u.startswith(("http://", "https://", "//", "mailto:", "tel:", "#", "data:")):
+        return u
+    if u.startswith("/sites/"):
+        return u
+    return f"{_page_rel_prefix(ctx)}{u.lstrip('/')}"
+
+
 def _pagination_page_url(ctx: RenderContext, page_num: int) -> str:
     """静态站点分页链接（跟 PageRenderer.category 路径规则一致）"""
     if page_num <= 1:
@@ -1242,7 +1326,7 @@ def _render_related_list(ctx: RenderContext, attrs: dict[str, str]) -> str:
     lines = ['<aside class="related-reading"><h3>相关阅读</h3>', '<ul class="related-list">']
     for item in items:
         title = _esc(item.title)
-        lines.append(f'<li><a href="{item.url}">{title}</a></li>')
+        lines.append(f'<li><a href="{_format_site_url(item.url, ctx)}">{title}</a></li>')
     lines.append("</ul></aside>")
     return "\n".join(lines)
 
@@ -1264,7 +1348,7 @@ def _render_home_featured(ctx: RenderContext, attrs: dict[str, str]) -> str:
         )
         lines.append(
             f'<article class="featured-card">'
-            f'<a href="{item.url}">{cover_html}<h3>{title}</h3></a>'
+            f'<a href="{_format_site_url(item.url, ctx)}">{cover_html}<h3>{title}</h3></a>'
             f'</article>'
         )
     lines.append("</div>")
@@ -1324,11 +1408,11 @@ def _lookup_value(tag: str, attrs: dict[str, str], ctx: RenderContext) -> str:
         if tag == "HY_CAT_COVER":
             return ctx.category.cover_url
         if tag == "HY_CAT_URL":
-            return ctx.category.url
+            return _format_site_url(ctx.category.url, ctx)
         if tag == "HY_CAT_PARENT_NAME":
             return ctx.category.parent_name
         if tag == "HY_CAT_PARENT_URL":
-            return ctx.category.parent_url
+            return _format_site_url(ctx.category.parent_url, ctx)
         if tag == "HY_CAT_META":
             field_name = attrs.get("_type") or attrs.get("type", "")
             return str(ctx.category.get(field_name) or "")
@@ -1340,7 +1424,7 @@ def _lookup_value(tag: str, attrs: dict[str, str], ctx: RenderContext) -> str:
         if tag == "HY_CONTENT_BODY":
             return ctx.content.body_html
         if tag == "HY_CONTENT_URL":
-            return ctx.content.url
+            return _format_site_url(ctx.content.url, ctx)
         if tag == "HY_CONTENT_SUBTITLE":
             return getattr(ctx.content, "subtitle", "") or ""
         if tag in ("HY_CONTENT_SUMMARY", "HY_CONTENT_EXCERPT"):
@@ -1348,7 +1432,7 @@ def _lookup_value(tag: str, attrs: dict[str, str], ctx: RenderContext) -> str:
         if tag == "HY_CONTENT_CAT_NAME":
             return getattr(ctx.content, "cat_name", "") or ""
         if tag == "HY_CONTENT_CAT_URL":
-            return getattr(ctx.content, "cat_url", "") or ""
+            return _format_site_url(getattr(ctx.content, "cat_url", "") or "", ctx)
         if tag == "HY_CONTENT_DATE":
             return getattr(ctx.content, "published_at", "") or ""
         if tag == "HY_CONTENT_DATE_SHORT":
@@ -1384,7 +1468,7 @@ def _lookup_value(tag: str, attrs: dict[str, str], ctx: RenderContext) -> str:
             if tag == "HY_PAGE_TITLE":
                 return ctx.content.title or ""
             if tag == "HY_PAGE_URL":
-                return ctx.content.url or ""
+                return _format_site_url(ctx.content.url or "", ctx)
             if tag == "HY_PAGE_DESC":
                 return ctx.content.summary or ""
             if tag == "HY_PAGE_KEYWORDS":
@@ -1393,7 +1477,7 @@ def _lookup_value(tag: str, attrs: dict[str, str], ctx: RenderContext) -> str:
             if tag == "HY_PAGE_TITLE":
                 return ctx.category.name or ""
             if tag == "HY_PAGE_URL":
-                return ctx.category.url or ""
+                return _format_site_url(ctx.category.url or "", ctx)
             if tag == "HY_PAGE_DESC":
                 return ctx.category.description or ""
             if tag == "HY_PAGE_KEYWORDS":
@@ -1455,12 +1539,8 @@ def _lookup_value(tag: str, attrs: dict[str, str], ctx: RenderContext) -> str:
         return _render_site_block(tag, ctx)
 
     # P3.6.5+ fix: 算出当前页相对 public 根的深度, 用于资源 URL 加 '../' 前缀
-    # page_path 例: 'index.html' → depth=0, 'about/index.html' → depth=1
-    # 这样栏目子页能正确取到 public/assets/ 下的资源 (用 ../assets/x)
-    # 首页用 assets/x 拿同层
     def _rel_prefix() -> str:
-        depth = ctx.page_path.count("/") if ctx.page_path else 0
-        return "../" * depth
+        return _page_rel_prefix(ctx)
 
     # P3.6.2: HY_ASSET_URL <name> = 站点静态资源公开 URL
     # 支持多种调用形式 (模板选最直观的):
@@ -1572,6 +1652,8 @@ def _lookup_value(tag: str, attrs: dict[str, str], ctx: RenderContext) -> str:
             # 旧数据仅有 cover：Banner 展示可回退缩略图（_banner 过滤仍要求 banner_image）
             if tag == "HY_ITEM_BANNER" and not val:
                 val = str(getattr(ctx.content, "cover_url", "") or "")
+            if tag in ("HY_ITEM_URL", "HY_ITEM_CAT_URL"):
+                val = _format_site_url(val, ctx)
             return val
         if tag == "HY_ITEM_META":
             field_name = attrs.get("_type") or attrs.get("type", "")
@@ -1587,7 +1669,7 @@ def _lookup_value(tag: str, attrs: dict[str, str], ctx: RenderContext) -> str:
         if tag == "HY_CAT_ITEM_SLUG":
             return ci.slug
         if tag == "HY_CAT_ITEM_URL":
-            return ci.url
+            return _format_site_url(ci.url, ctx)
         if tag == "HY_CAT_ITEM_COVER":
             return ci.cover_url
         if tag == "HY_CAT_ITEM_DESCRIPTION":

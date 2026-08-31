@@ -106,6 +106,8 @@ services:
       # 留空 SITES_DATA_HOST_PATH 时兑底用 named volume (旧行为)
       - ${SITES_DATA_HOST_PATH:-sites_data}:/var/www/sites
       - nginx_conf:/etc/nginx/conf.d
+      # 远程发布 SSH 密钥（可选，DEPLOY_SSH_KEYS_HOST_PATH 指向含 .pem 的目录）
+      - ${DEPLOY_SSH_KEYS_HOST_PATH:-./ssh-keys}:/keys:ro
     command: >
       sh -c "alembic upgrade head &&
              PYTHONPATH=/app python scripts/seed_minio.py &&
@@ -140,6 +142,7 @@ services:
       - ../backend:/app
       - ../ssg:/app/ssg
       - ${SITES_DATA_HOST_PATH:-sites_data}:/var/www/sites
+      - ${DEPLOY_SSH_KEYS_HOST_PATH:-./ssh-keys}:/keys:ro
     command: celery -A app.workers.celery_app worker --loglevel=info
     networks:
       - ai_cms_net

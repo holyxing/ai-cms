@@ -77,6 +77,7 @@ export interface ContentUpdate {
   banner_image?: string | null;
   is_featured?: boolean;
   status?: ContentStatus;
+  published_at?: string | null;
   taxonomy_ids?: string[];
   primary_taxonomy_id?: string | null;
   // P2.7
@@ -152,6 +153,18 @@ export const contentsApi = {
     const r = await api.get<APIResponse<ContentVersion[]>>(
       `/sites/${siteId}/contents/${contentId}/versions`,
     );
+    return r.data.data!;
+  },
+
+  /** 恢复历史版本：写入新 version，不删旧记录 */
+  async rollback(siteId: string, contentId: string, targetVersion: number) {
+    const r = await api.post<APIResponse<Content>>(
+      `/sites/${siteId}/contents/${contentId}/rollback`,
+      { target_version: targetVersion },
+    );
+    if ((r.data?.code ?? 0) !== 0) {
+      throw new Error(r.data?.message || '恢复失败');
+    }
     return r.data.data!;
   },
 

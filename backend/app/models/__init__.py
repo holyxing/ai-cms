@@ -11,6 +11,7 @@ from app.models.theme import Theme
 from app.models.theme_version import ThemeVersion
 from app.models.layout import Layout, LayoutVersion, LAYOUT_SCOPES
 from app.models.deployment import Deployment
+from app.models.deploy_server import DeployServer
 from app.models.content_snapshot import ContentSnapshot
 from app.models.ai_provider import AIProvider
 from app.models.ai_run import AIRun, AIRunStep, AIUsageDaily

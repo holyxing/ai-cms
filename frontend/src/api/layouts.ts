@@ -195,7 +195,7 @@ export const HY_TAGS = [
   { code: 'HY_CAT_URL', scope: 'category', desc: '栏目链接', example: '<a href="<HY_CAT_URL />"><HY_CAT_NAME /></a>' },
   { code: 'HY_CAT_DESCRIPTION', scope: 'category', desc: '栏目描述', example: '<p><HY_CAT_DESCRIPTION /></p>' },
   { code: 'HY_CAT_COVER', scope: 'category', desc: '栏目封面图', example: '<img src="<HY_CAT_COVER />" />' },
-  { code: 'HY_CONTENTS', scope: 'category', desc: '内容循环；_banner/_featured/_include_children/_has_cover/_has_banner/_limit_per_cat', example: '<HY_CONTENTS _banner="true" _order="newest">...</HY_CONTENTS>' },
+  { code: 'HY_CONTENTS', scope: 'category', desc: '内容循环。_order=newest|oldest；_order_by=published|created|updated', example: '<HY_CONTENTS _limit="12" _order="newest" _order_by="published">...</HY_CONTENTS>' },
   { code: 'HY_CONTENTS_EMPTY', scope: 'category', desc: '列表为空时显示', example: '<HY_CONTENTS_EMPTY><p>暂无内容</p></HY_CONTENTS_EMPTY>' },
   { code: 'HY_CONTENTS_PAGINATION', scope: 'category', desc: '分页器 (HY_PAGINATION 别名)', example: '<HY_CONTENTS_PAGINATION _show_numbers="true" />' },
   { code: 'HY_PAGINATION', scope: 'category', desc: '分页器别名', example: '<HY_PAGINATION _show_numbers="true" />' },

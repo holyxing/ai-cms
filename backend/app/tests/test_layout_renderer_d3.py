@@ -21,6 +21,8 @@ def make_item(
     cover_url="/cover1.jpg", banner_url="", author="holy",
     published_at="2026-06-01T10:00:00Z", hits=100,
     cat_slug="tech", cat_id="cat-tech", cat_name="科技", cat_url="/tech",
+    created_at="2026-01-01T00:00:00Z",
+    updated_at="2026-06-01T10:00:00Z",
     tags_html='<a>#标签1</a>',
     is_featured=False,
 ):
@@ -28,7 +30,8 @@ def make_item(
     return ContentCtx(
         id=id, title=title, url=url, summary=summary,
         cover_url=cover_url, banner_url=banner_url, author=author,
-        published_at=published_at, hits=hits,
+        published_at=published_at, created_at=created_at, updated_at=updated_at,
+        hits=hits,
         datetime=published_at, cat_slug=cat_slug, cat_id=cat_id,
         cat_name=cat_name, cat_url=cat_url, tags_html=tags_html,
         is_featured=is_featured,
@@ -93,6 +96,25 @@ def test_A2_loop_with_order_newest():
     )
     # 顺序: 新文(6) > 中文(3) > 旧文(1)
     assert out == "|新文||中文||旧文|"
+
+
+def test_A2b_order_by_created():
+    """_order_by=created：按创建时间，可与发布日期不同"""
+    contents = [
+        make_item(id="c1", title="先建后发", published_at="2026-06-01T00:00:00Z", created_at="2026-01-01T00:00:00Z"),
+        make_item(id="c2", title="后建先发", published_at="2026-02-01T00:00:00Z", created_at="2026-05-01T00:00:00Z"),
+    ]
+    ctx = make_ctx(contents=contents)
+    by_pub = render(
+        '<HY_CONTENTS _order="newest" _order_by="published" _limit="10">|HY_ITEM_TITLE|</HY_CONTENTS>',
+        ctx,
+    )
+    by_create = render(
+        '<HY_CONTENTS _order="newest" _order_by="created" _limit="10">|HY_ITEM_TITLE|</HY_CONTENTS>',
+        ctx,
+    )
+    assert by_pub == "|先建后发||后建先发|"
+    assert by_create == "|后建先发||先建后发|"
 
 
 def test_A3_loop_with_limit():
@@ -462,6 +484,26 @@ def test_H1_banner_featured_per_cat():
     assert "普通A" not in out
     assert "无Banner头条" not in out
     assert out.count("<li>") == 2
+
+
+def test_H1b_banner_leaf_category_multiple():
+    """_banner=true：叶子栏目可展示多条头条（同栏多头条轮播）"""
+    leaf = CategoryCtx(id="c1", slug="hangye", name="行业动态", parent_id="p")
+    parent = CategoryCtx(id="p", slug="xinwen", name="新闻资讯", parent_id="")
+    contents = [
+        make_item(id="a", title="头条A", cat_id="c1", cat_slug="hangye", is_featured=True,
+                  published_at="2026-08-12T10:00:00Z", banner_url="/a-banner.webp"),
+        make_item(id="b", title="头条B", cat_id="c1", cat_slug="hangye", is_featured=True,
+                  published_at="2026-08-10T10:00:00Z", banner_url="/b-banner.webp"),
+    ]
+    ctx = make_ctx(contents=contents, cats=[parent, leaf], category=leaf)
+    out = render(
+        '<HY_CONTENTS _banner="true" _limit="10"><li><HY_ITEM_TITLE /></li></HY_CONTENTS>',
+        ctx,
+    )
+    assert out.count("<li>") == 2
+    assert "头条A" in out
+    assert "头条B" in out
 
 
 def test_H2_include_children_list_and_count():

@@ -7,11 +7,13 @@ import { Rocket, RotateCcw, RefreshCw, CheckCircle2, XCircle, Loader2, Clock, Fi
 import { toast } from 'sonner';
 
 import { publishApi, type Deployment, type DeploymentListItem, type DeploymentStatus } from '@/api/publish';
+import { RemoteDeployPanel } from '@/components/RemoteDeployPanel';
 import { sitesApi, type SiteListItem } from '@/api/sites';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Skeleton, EmptyState, Separator, PublishStatusBadge } from '@/components/ui';
 import { MissingAssetsDialog, type MissingAsset } from '@/components/MissingAssetsDialog';
 import { cn } from '@/lib/utils';
 import { refreshNotifications } from '@/lib/notificationsSync';
+import { useRecentSites } from '@/stores/recentSites';
 
 // === 状态展示 ===
 function StatusBadge({ status }: { status: DeploymentStatus }) {
@@ -87,7 +89,19 @@ function DeploymentDetail({
           <div>文章: {d.content_count ?? 0}</div>
           <div>重试: {d.retry_count}</div>
           <div>产物: <code className="text-[10px]">{d.artifact_path || '-'}</code></div>
+          {d.remote_sync_status && (
+            <div className="col-span-2">
+              远程同步: <Badge variant={d.remote_sync_status === 'success' ? 'default' : 'outline'} className="text-[10px]">{d.remote_sync_status}</Badge>
+              {d.remote_sync_duration_ms != null && <span className="ml-1">({d.remote_sync_duration_ms} ms)</span>}
+            </div>
+          )}
         </div>
+        {d.remote_sync_log && (
+          <details className="rounded-md bg-muted/30 p-2">
+            <summary className="cursor-pointer text-xs text-muted-foreground">远程同步日志</summary>
+            <pre className="mt-2 max-h-40 overflow-auto text-[10px] font-mono whitespace-pre-wrap break-all">{d.remote_sync_log}</pre>
+          </details>
+        )}
         {d.error_message && (
           <div className="rounded-md bg-destructive/10 border border-destructive/30 p-2 text-destructive text-xs">
             {d.error_message}
@@ -115,13 +129,14 @@ function DeploymentDetail({
 // === 主页面 ===
 export function PublishPage() {
   const qc = useQueryClient();
-  // 1. 选第一个站
+  const recents = useRecentSites((s) => s.sites);
+  // 1. 优先用最近访问站点，与全局 SiteSwitcher 一致
   const sitesQ = useQuery({
     queryKey: ['sites', 'active'] as const,
     queryFn: () => sitesApi.list({ page: 1, page_size: 50, status: 'active' }).catch(() => ({ items: [], total: 0, page: 1, page_size: 0 })),
   });
-  const site = sitesQ.data?.items?.[0] as SiteListItem | undefined;
-  const siteId = site?.id;
+  const siteId = recents[0]?.id ?? sitesQ.data?.items?.[0]?.id;
+  const site = sitesQ.data?.items?.find((s) => s.id === siteId) as SiteListItem | undefined;
   const siteSlug = site?.slug;
 
   // 2. 发布历史
@@ -135,10 +150,11 @@ export function PublishPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   // P3.6.4: 缺失资源检查弹窗
   const [missing, setMissing] = useState<MissingAsset[] | null>(null);
+  const [syncRemote, setSyncRemote] = useState(true);
   // 触发新发布
   const triggerMut = useMutation({
     mutationFn: (force: boolean = false) =>
-      publishApi.trigger(siteId!, { triggered_by: 'manual', force }),
+      publishApi.trigger(siteId!, { triggered_by: 'manual', force, sync_remote: syncRemote }),
     onSuccess: (res) => {
       if (!res) {
         toast.error('触发失败');
@@ -207,6 +223,13 @@ export function PublishPage() {
           {triggerMut.isPending ? '触发中...' : '立即发布'}
         </Button>
       </header>
+
+      {siteId && <RemoteDeployPanel siteId={siteId} />}
+
+      <label className="flex items-center gap-2 text-xs text-muted-foreground">
+        <input type="checkbox" checked={syncRemote} onChange={(e) => setSyncRemote(e.target.checked)} />
+        本地构建完成后同步到远程服务器（需先在下方启用远程发布）
+      </label>
 
       {/* 当前任务 (轮询) */}
       {activeId && (

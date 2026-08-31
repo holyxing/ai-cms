@@ -238,7 +238,7 @@ async def trigger_publish(
     try:
         # 导人 task (避免 startup 时加载重)
         from app.workers.publish import run_publish
-        run_publish.delay(str(d.id))
+        run_publish.delay(str(d.id), sync_remote=body.sync_remote)
         logger.info("publish task enqueued: deployment=%s site=%s user=%s", d.id, site_id, current_user.id)
     except Exception as e:
         # 任务入队失败不阻塞用户 (部署记录仍建), 标记为 failed

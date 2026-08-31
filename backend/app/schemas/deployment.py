@@ -24,6 +24,8 @@ class DeploymentCreate(BaseModel):
     theme_version_id: Optional[uuid.UUID] = None
     # P3.6.4: 强制发布, 跳过资源缺失检查 (默认 422 阻断)
     force: bool = False
+    # 本地构建成功后是否 rsync 到远程（站点已启用 remote_deploy 时生效）
+    sync_remote: bool = True
 
 
 class CategoryPublishCreate(BaseModel):
@@ -73,6 +75,9 @@ class DeploymentRead(BaseModel):
     # P3.6.1+: 发布粒度
     scope: str = "site"
     scope_id: Optional[uuid.UUID] = None
+    remote_sync_status: Optional[str] = None
+    remote_sync_log: Optional[str] = None
+    remote_sync_duration_ms: Optional[int] = None
 
 
 class DeploymentListItem(BaseModel):

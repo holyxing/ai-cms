@@ -9,12 +9,12 @@
 // 路由: /sites/:siteId/contents/:contentId
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useDraftAutosave } from '@/lib/useDraftAutosave';
-import { ConfirmDialog } from '@/components/ui';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, FileText, History, Save, Trash2, Send, Sparkles,
-  Code2, Eye, Wand2, ExternalLink, FolderTree, ChevronDown, FileCode2,
+  Code2, Eye, Wand2, ExternalLink, FolderTree, ChevronDown, FileCode2, RotateCcw,
+  CalendarClock,
 } from 'lucide-react';
 import { pinyin } from 'pinyin-pro';
 import { toast } from 'sonner';
@@ -89,6 +89,20 @@ function isAutoPlaceholderSlug(slug: string): boolean {
   return /^untitled-[a-z0-9]+$/.test(slug) || slug === slugifyContentSlug('未命名文章');
 }
 
+/** datetime-local 用本地时区；空则当前时间 */
+function toDatetimeLocalValue(iso: string | null | undefined): string {
+  const d = iso ? new Date(iso) : new Date();
+  if (Number.isNaN(d.getTime())) return toDatetimeLocalValue(null);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function datetimeLocalToIso(value: string): string {
+  const d = new Date(value);
+  if (!value || Number.isNaN(d.getTime())) return new Date().toISOString();
+  return d.toISOString();
+}
+
 export function ContentDetailPage() {
   // P3.9.1+ fix (holy 反馈 #11211): 路由参数名是 `siteId` 不是 `id`
   const { siteId, contentId } = useParams<{ siteId: string; contentId: string }>();
@@ -108,7 +122,9 @@ export function ContentDetailPage() {
   const [bannerImage, setBannerImage] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [status, setStatus] = useState<ContentStatus>('draft');
+  const [publishedAtLocal, setPublishedAtLocal] = useState(() => toDatetimeLocalValue(null));
   const [dirty, setDirty] = useState(false);
+  const [restoreVersionNum, setRestoreVersionNum] = useState<number | null>(null);
   // P3.3+ 3-tab 模式: HTML / AI / 预览 (默认 HTML)
   const [editMode, setEditMode] = useState<EditMode>('html');
   const [previewHtml, setPreviewHtml] = useState('');
@@ -242,6 +258,19 @@ export function ContentDetailPage() {
     queryFn: () => contentsApi.listVersions(siteId!, contentId!),
     enabled: !!contentId && contentId !== 'new',
   });
+  const latestVersionNum = versions?.[0]?.version_num;
+  const restoreMut = useMutation({
+    mutationFn: (ver: number) => contentsApi.rollback(siteId!, contentId!, ver),
+    onSuccess: (_data, ver) => {
+      queryClient.invalidateQueries({ queryKey: ['content', siteId, contentId] });
+      queryClient.invalidateQueries({ queryKey: ['content-versions', siteId, contentId] });
+      setDirty(false);
+      draft.clearDraft();
+      setRestoreVersionNum(null);
+      toast.success(`已恢复 v${ver} 的正文（已写入新版本）`);
+    },
+    onError: (e: Error) => toast.error(e.message || '恢复失败'),
+  });
 
   // P3.9.1+ (holy 反馈 #11279 续): 主稿拉副本列表 - 拼出完整 category_ids 用于多选 UI
   // 副本是 is_copy_of=content.id 的所有 content, 拿它们的 category_id 拼到 categoryIds
@@ -269,6 +298,7 @@ export function ContentDetailPage() {
       setBannerImage(content.banner_image ?? '');
       setIsFeatured(!!content.is_featured);
       setStatus(content.status);
+      setPublishedAtLocal(toDatetimeLocalValue(content.published_at));
       const nextSlug = content.slug || '';
       setSlug(nextSlug);
       // 已有文章且 slug 不是占位符 → 锁定发布路径，避免改标题时路径跟着变
@@ -382,6 +412,7 @@ export function ContentDetailPage() {
       banner_image: bannerImage.trim() || null,
       is_featured: isFeatured,
       status,
+      published_at: datetimeLocalToIso(publishedAtLocal),
       category_ids: categoryIds,
     }),
     onSuccess: async () => {
@@ -919,6 +950,32 @@ export function ContentDetailPage() {
             )}
           </div>
 
+          {/* 发布日期：列表/详情 HY_CONTENT_DATE 用，默认当前时间 */}
+          <div className="rounded-md border bg-background p-3">
+            <p className="mb-2 text-[11px] font-medium flex items-center gap-1.5">
+              <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
+              发布日期
+            </p>
+            {canEdit ? (
+              <Input
+                type="datetime-local"
+                value={publishedAtLocal}
+                onChange={(e) => {
+                  setPublishedAtLocal(e.target.value || toDatetimeLocalValue(null));
+                  setDirty(true);
+                }}
+                className="h-8 px-2 text-[11.5px] focus-visible:ring-1 focus-visible:ring-offset-0"
+              />
+            ) : (
+              <p className="text-[11.5px] text-foreground">
+                {new Date(datetimeLocalToIso(publishedAtLocal)).toLocaleString('zh-CN', { hour12: false })}
+              </p>
+            )}
+            <p className="mt-1.5 text-[10px] text-muted-foreground">
+              网站上展示的日期。未改则用当前时间；可改成过去或未来。
+            </p>
+          </div>
+
           {/* 状态 */}
           <div className="rounded-md border bg-background p-3">
             <p className="mb-2 text-[11px] font-medium flex items-center gap-1.5">
@@ -942,7 +999,6 @@ export function ContentDetailPage() {
               <MetaRow label="作者" value={content.author_name || '匿名'} />
               <MetaRow label="创建" value={new Date(content.created_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })} />
               <MetaRow label="更新" value={new Date(content.updated_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })} />
-              {content.published_at && <MetaRow label="发布" value={new Date(content.published_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })} />}
               <MetaRow label="浏览" value={content.view_count} />
             </dl>
           </div>
@@ -955,17 +1011,41 @@ export function ContentDetailPage() {
             </p>
             {versions && versions.length > 0 ? (
               <ul className="max-h-72 divide-y overflow-y-auto">
-                {versions.map((v) => (
-                  <li key={v.id} className="px-3 py-1.5 text-[10.5px]">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-medium">v{v.version_num}</span>
-                      {v.is_auto_save && <Badge variant="muted" className="text-[9px]">自动</Badge>}
-                    </div>
-                    <div className="mt-0.5 text-[10px] text-muted-foreground">
-                      {v.author_name || '匿名'} · {new Date(v.created_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </li>
-                ))}
+                {versions.map((v) => {
+                  const isCurrent = v.version_num === latestVersionNum;
+                  return (
+                    <li key={v.id}>
+                      <button
+                        type="button"
+                        disabled={!canEdit || isCurrent || restoreMut.isPending}
+                        onClick={() => setRestoreVersionNum(v.version_num)}
+                        className={cn(
+                          'w-full px-3 py-1.5 text-left text-[10.5px]',
+                          canEdit && !isCurrent
+                            ? 'hover:bg-secondary/70'
+                            : 'cursor-default',
+                        )}
+                        title={isCurrent ? '当前版本' : `恢复 v${v.version_num} 的正文`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-medium">v{v.version_num}</span>
+                          {v.is_auto_save && <Badge variant="muted" className="text-[9px]">自动</Badge>}
+                          {isCurrent ? (
+                            <Badge variant="info" className="text-[9px]">当前</Badge>
+                          ) : canEdit ? (
+                            <span className="ml-auto inline-flex items-center gap-0.5 text-[10px] font-medium text-primary">
+                              <RotateCcw className="h-2.5 w-2.5" />
+                              恢复
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-0.5 text-[10px] text-muted-foreground">
+                          {v.author_name || '匿名'} · {new Date(v.created_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="p-3 text-[10.5px] text-muted-foreground">暂无版本</p>
@@ -1032,6 +1112,22 @@ export function ContentDetailPage() {
           onConfirm={(v: string) => { imgResolver?.(v); setImgResolver(null); setImgPromptOpen(false); }}
         />
       )}
+      <ConfirmDialog
+        open={restoreVersionNum !== null}
+        onClose={() => setRestoreVersionNum(null)}
+        onConfirm={() => {
+          if (restoreVersionNum != null) restoreMut.mutate(restoreVersionNum);
+        }}
+        title={`恢复 v${restoreVersionNum ?? ''} 的正文？`}
+        description={
+          dirty
+            ? '会用该版本的标题、正文、摘要覆盖当前编辑区，并生成新版本。未保存的修改会丢失。'
+            : '会用该版本的标题、正文、摘要覆盖当前内容，并生成新版本（历史仍保留）。'
+        }
+        confirmText={restoreMut.isPending ? '恢复中…' : '恢复'}
+        variant="warning"
+        loading={restoreMut.isPending}
+      />
       <ConfirmDialog
         open={clearConfirmOpen}
         onClose={() => { clearResolver?.(false); setClearResolver(null); setClearConfirmOpen(false); }}

@@ -22,6 +22,11 @@ export interface Deployment {
   retry_count: number;
   error_message: string | null;
   created_at: string;
+  scope?: string;
+  scope_id?: string | null;
+  remote_sync_status?: string | null;
+  remote_sync_log?: string | null;
+  remote_sync_duration_ms?: number | null;
 }
 
 export interface DeploymentListItem {
@@ -72,7 +77,7 @@ export const publishApi = {
     );
     return data.data;
   },
-  trigger: async (siteId: string, params: { triggered_by?: TriggeredBy; theme_version_id?: string; force?: boolean } = {}) => {
+  trigger: async (siteId: string, params: { triggered_by?: TriggeredBy; theme_version_id?: string; force?: boolean; sync_remote?: boolean } = {}) => {
     const { data } = await api.post<{ data: DeploymentJobAccepted; message?: string; code?: number }>(
       `/sites/${siteId}/publish`,
       params,
@@ -87,11 +92,11 @@ export const publishApi = {
     return data.data;
   },
   list: async (siteId: string, params: { status?: string; page?: number; page_size?: number } = {}) => {
-    const { data } = await api.get<Paginated<DeploymentListItem>>(
+    const { data } = await api.get<{ data: Paginated<DeploymentListItem> }>(
       `/sites/${siteId}/publish/jobs`,
       { params }
     );
-    return data;
+    return data.data ?? { items: [], total: 0, page: 1, page_size: 20 };
   },
   get: async (deploymentId: string) => {
     const { data } = await api.get<{ data: Deployment }>(`/publish/jobs/${deploymentId}`);

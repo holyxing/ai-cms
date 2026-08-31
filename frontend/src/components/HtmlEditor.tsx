@@ -21,12 +21,13 @@
  *  - onConfirmClear: 点 清空 按钮时调, host 返回 true=确认
  */
 import { useEffect, useRef, useState } from 'react';
-import { Code, Wand2, Copy, XCircle, AlertCircle, AlertTriangle, ChevronDown, ChevronUp, Bold, Italic, Strikethrough, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Code2, Link as LinkIcon, Image as ImageIcon, Minus, ImageDown, Maximize2, Minimize2 } from 'lucide-react';
+import { Code, Wand2, Copy, XCircle, AlertCircle, AlertTriangle, ChevronDown, ChevronUp, Bold, Italic, Strikethrough, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Code2, Link as LinkIcon, Image as ImageIcon, Minus, ImageDown, Maximize2, Minimize2, Pilcrow } from 'lucide-react';
 import { toast } from 'sonner';
 import { HY_TAGS, validateHyTags, CONTAINER_HY_CODES, type HyValidationIssue } from '@/api/layouts';
 import TagAutocompletePopover, { type TagItem } from './editor/TagAutocompletePopover';
 import { HtmlAiEnhanceMenu } from './editor/HtmlAiEnhanceMenu';
 import { cn } from '@/lib/utils';
+import { wrapPlainTextLinesInParagraphs } from '@/lib/htmlParagraphs';
 
 export interface HtmlEditorProps {
   value: string;
@@ -212,6 +213,40 @@ export function HtmlEditor({
     });
   };
 
+  const wrapLinesAsParagraphs = () => {
+    const ta = taRef.current;
+    if (!ta) return;
+
+    const selectionStart = ta.selectionStart;
+    const selectionEnd = ta.selectionEnd;
+    const hasSelection = selectionEnd > selectionStart;
+    const source = hasSelection ? (value || '').slice(selectionStart, selectionEnd) : (value || '');
+    const result = wrapPlainTextLinesInParagraphs(source);
+
+    if (result.convertedCount === 0) {
+      toast.info('没有需要转换的纯文本行');
+      ta.focus();
+      return;
+    }
+
+    const next = hasSelection
+      ? (value || '').slice(0, selectionStart) + result.html + (value || '').slice(selectionEnd)
+      : result.html;
+    onChange(next);
+    toast.success(`已将 ${result.convertedCount} 行转换为 <p> 段落`);
+
+    requestAnimationFrame(() => {
+      if (hasSelection) {
+        ta.selectionStart = selectionStart;
+        ta.selectionEnd = selectionStart + result.html.length;
+      } else {
+        ta.selectionStart = ta.selectionEnd = result.html.length;
+      }
+      ta.focus();
+      handleSelect();
+    });
+  };
+
   const insertLink = async () => {
     const ta = taRef.current;
     if (!ta) return;
@@ -271,7 +306,8 @@ export function HtmlEditor({
     link: insertLink,
     image: insertImage,
     hr: () => insertSelfClose('\n<hr />\n'),
-  } as const;;
+    paragraphLines: wrapLinesAsParagraphs,
+  } as const;
 
   // P3.9.4 (holy 反馈 #12044): 复制当前光标处/第一个 <img> 图片到剪贴板
   // 需 cursor 处的 <img>  - 简单策略: 在光标位置前后 500 字符内找最近的 <img src=...>
@@ -485,6 +521,7 @@ export function HtmlEditor({
               <ToolbarBtn title="粗体 (⌘B)" onClick={toolbarActions.bold}><Bold className="h-3 w-3" /></ToolbarBtn>
               <ToolbarBtn title="斜体 (⌘I)" onClick={toolbarActions.italic}><Italic className="h-3 w-3" /></ToolbarBtn>
               <ToolbarBtn title="删除线" onClick={toolbarActions.strike}><Strikethrough className="h-3 w-3" /></ToolbarBtn>
+              <ToolbarBtn title="每行转为 <p> 段落（有选区则处理选区，否则处理全文）" onClick={toolbarActions.paragraphLines}><Pilcrow className="h-3 w-3" /></ToolbarBtn>
               <ToolbarSep />
               <ToolbarBtn title="一级标题" onClick={toolbarActions.h1}><Heading1 className="h-3 w-3" /></ToolbarBtn>
               <ToolbarBtn title="二级标题" onClick={toolbarActions.h2}><Heading2 className="h-3 w-3" /></ToolbarBtn>

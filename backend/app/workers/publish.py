@@ -240,10 +240,21 @@ async def _run_layout_build(db: AsyncSession, site: Site, contents: list) -> tup
             log_lines.extend(ml)
         except Exception as e:
             log_lines.append(f"[media-inline] failed: {e}")
+        try:
+            _, ml = _rewrite_admin_urls(output_dir, site.slug)
+            log_lines.extend(ml)
+        except Exception as e:
+            log_lines.append(f"[url-rewrite] failed: {e}")
+        try:
+            _, ml = _rewrite_legacy_urls(output_dir)
+            log_lines.extend(ml)
+        except Exception as e:
+            log_lines.append(f"[legacy-url] failed: {e}")
         # P3.6.2: 复制 site_assets 到 public/assets/ (让 nginx 公开可访问)
         if site_assets:
             copied = _copy_assets_to_public(list(site_assets), output_dir)
             log_lines.append(f"[layout-build] copied {copied}/{len(site_assets)} assets to {output_dir}/assets")
+        log_lines.extend(_ensure_root_favicon(output_dir))
         return ("\n".join(log_lines)), total, "layout-success"
     except Exception as e:
         log_lines.append(f"[layout-build] failed: {e}\n{traceback.format_exc()}")
@@ -390,6 +401,189 @@ def _inline_content_media(output_dir: str) -> tuple[int, int, list[str]]:
     return (downloaded, len(file_uses), log)
 
 
+def _rewrite_admin_urls(output_dir: str, site_slug: str) -> tuple[int, list[str]]:
+    """将 HTML 中 /sites/{slug}/ 管理端绝对路径改写为相对路径。
+
+    正文编辑器保存的图片/链接常带 /sites/{slug}/ 前缀（管理端 nginx alias），
+    远程静态站根目录不含该前缀，发布时必须改写。
+    """
+    log: list[str] = []
+    admin_prefix = f"/sites/{site_slug}/"
+    if not site_slug or not os.path.isdir(output_dir):
+        return (0, log)
+
+    modified = 0
+    for root, _, files in os.walk(output_dir):
+        for fname in files:
+            if not fname.endswith(".html"):
+                continue
+            fpath = os.path.join(root, fname)
+            rel = os.path.relpath(fpath, output_dir).replace("\\", "/")
+            depth = rel.count("/")
+            rel_prefix = "../" * depth
+
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    html = f.read()
+            except OSError:
+                continue
+
+            if admin_prefix not in html:
+                continue
+
+            new_html = html.replace(admin_prefix, rel_prefix)
+            if new_html == html:
+                continue
+            try:
+                with open(fpath, "w", encoding="utf-8") as f:
+                    f.write(new_html)
+                modified += 1
+            except OSError as e:
+                log.append(f"[url-rewrite] failed to write {fpath}: {e}")
+
+    log.append(f"[url-rewrite] rewrote {admin_prefix} in {modified} html files")
+    return (modified, log)
+
+
+# ZIP 导入时的英文占位路径 → 实际 CMS slug 路径
+LEGACY_URL_MAP: dict[str, str] = {
+    "product-center/product-haishi.html": "chanpinzhongxin/haishi.html",
+    "product-center/product-haishan.html": "chanpinzhongxin/haishan.html",
+    "product-center/product-taitan.html": "chanpinzhongxin/taitan.html",
+    "product-center/product-yaoguang.html": "chanpinzhongxin/yaoguang.html",
+    "product-center/product-renmazuo.html": "chanpinzhongxin/renmazuo.html",
+    "solutions/solution-trusted-space.html": "jiejuefangan/chanpinjiejuefangan/kexinshujukongjian.html",
+    "solutions/solution-classification.html": "jiejuefangan/chanpinjiejuefangan/fenleifenji.html",
+    "solutions/solution-security-governance.html": "jiejuefangan/chanpinjiejuefangan/shujuanquanzhili.html",
+    "solutions/industry-energy.html": "jiejuefangan/hangyejiejuefangan/nengyuan.html",
+    "solutions/industry-government.html": "jiejuefangan/hangyejiejuefangan/zhengfu.html",
+    "solutions/industry-medical.html": "jiejuefangan/hangyejiejuefangan/yiliao.html",
+    "solutions/industry-manufacturing.html": "jiejuefangan/hangyejiejuefangan/zhizao.html",
+    "solutions/industry-central-enterprise.html": "jiejuefangan/hangyejiejuefangan/guoyangqi.html",
+    "solutions/industry-education.html": "jiejuefangan/hangyejiejuefangan/jiaoyu.html",
+    "about/about-company.html": "guanyuwomen/gongsijieshao.html",
+    "about/about-contact.html": "guanyuwomen/lianxiwomen.html",
+    "about/about-trial.html": "guanyuwomen/chanpinshiyong/index.html",
+    "news/news-bid.html": "xinwenzixun/zhongbiaozixun/index.html",
+    "news/news-honor.html": "xinwenzixun/rongyuzixun/index.html",
+    "news/news-industry.html": "xinwenzixun/hangyedongtai/index.html",
+    "cases/cases-security.html": "anlizhongxin/shujuanquankongzhi/index.html",
+    "cases/cases-ready.html": "anlizhongxin/shujujiuxu/index.html",
+    "cases/cases-consumption.html": "anlizhongxin/shujuxiaofei/index.html",
+}
+
+
+def _rewrite_legacy_urls(output_dir: str) -> tuple[int, list[str]]:
+    """将 ZIP 导入遗留的英文目录链接改写为实际 slug 路径（按页面深度加 ../ 前缀）。"""
+    log: list[str] = []
+    if not os.path.isdir(output_dir):
+        return (0, log)
+
+    modified = 0
+    # 长路径优先，避免短 key 误匹配
+    items = sorted(LEGACY_URL_MAP.items(), key=lambda x: len(x[0]), reverse=True)
+
+    # 1) HTML：按页面深度改写
+    for root, _, files in os.walk(output_dir):
+        for fname in files:
+            if not fname.endswith(".html"):
+                continue
+            fpath = os.path.join(root, fname)
+            rel = os.path.relpath(fpath, output_dir).replace("\\", "/")
+            depth = rel.count("/")
+            rel_prefix = "../" * depth
+
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    html = f.read()
+            except OSError:
+                continue
+
+            new_html = html
+            for old, new in items:
+                # 匹配 (../)*old 或 /old
+                pat = re.compile(r"(?:\.\./)*" + re.escape(old))
+                new_html = pat.sub(f"{rel_prefix}{new}", new_html)
+                abs_pat = re.compile(r"/" + re.escape(old))
+                new_html = abs_pat.sub(f"/{new}", new_html)
+
+            if new_html == html:
+                continue
+            try:
+                with open(fpath, "w", encoding="utf-8") as f:
+                    f.write(new_html)
+                modified += 1
+            except OSError as e:
+                log.append(f"[legacy-url] failed to write {fpath}: {e}")
+
+    log.append(f"[legacy-url] rewrote legacy paths in {modified} html files")
+
+    # 2) JS（首页 main.js 等 bindCardLinks 用站点根相对路径，不含 ../）
+    js_modified = 0
+    for root, _, files in os.walk(output_dir):
+        for fname in files:
+            if not fname.endswith(".js"):
+                continue
+            fpath = os.path.join(root, fname)
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except OSError:
+                continue
+            new_content = content
+            for old, new in items:
+                new_content = new_content.replace(old, new)
+            if new_content == content:
+                continue
+            try:
+                with open(fpath, "w", encoding="utf-8") as f:
+                    f.write(new_content)
+                js_modified += 1
+            except OSError as e:
+                log.append(f"[legacy-url] failed to write {fpath}: {e}")
+    if js_modified:
+        log.append(f"[legacy-url] rewrote legacy paths in {js_modified} js files")
+
+    return (modified + js_modified, log)
+
+
+def _ensure_root_favicon(output_dir: str) -> list[str]:
+    """从 assets/images/favicon.svg 提取 PNG，生成 public/favicon.ico（浏览器兼容性更好）。"""
+    import base64
+    import io
+    import re
+    from pathlib import Path
+
+    log: list[str] = []
+    svg_candidates = [
+        Path(output_dir) / "assets/images/favicon.svg",
+        Path(output_dir) / "assets/favicon.svg",
+    ]
+    svg_path = next((p for p in svg_candidates if p.is_file()), None)
+    if not svg_path:
+        log.append("[favicon] favicon.svg not found, skip ico generation")
+        return log
+    try:
+        from PIL import Image
+
+        svg = svg_path.read_text(encoding="utf-8")
+        m = re.search(r"data:image/png;base64,([A-Za-z0-9+/=]+)", svg)
+        if not m:
+            log.append("[favicon] no embedded png in favicon.svg")
+            return log
+        img = Image.open(io.BytesIO(base64.b64decode(m.group(1)))).convert("RGBA")
+        img.resize((32, 32), Image.Resampling.LANCZOS).save(
+            Path(output_dir) / "favicon.ico", format="ICO", sizes=[(32, 32), (16, 16)]
+        )
+        png_out = Path(output_dir) / "assets/images/favicon.png"
+        png_out.parent.mkdir(parents=True, exist_ok=True)
+        img.save(png_out, format="PNG")
+        log.append(f"[favicon] generated favicon.ico + {png_out.name}")
+    except Exception as e:
+        log.append(f"[favicon] generation failed: {e}")
+    return log
+
+
 async def _run_astro_build(site: Site, tokens: dict, contents_data: list) -> tuple[str, int, str]:
     """调 Astro CLI 生成静态产物
 
@@ -534,19 +728,20 @@ async def _run_astro_build(site: Site, tokens: dict, contents_data: list) -> tup
     soft_time_limit=TASK_SOFT_TIME_LIMIT,
     time_limit=TASK_TIME_LIMIT,
 )
-def run_publish(self, deployment_id: str) -> dict:
+def run_publish(self, deployment_id: str, sync_remote: bool = True) -> dict:
     """Celery 任务: 跑一次部署
 
     Args:
         deployment_id: UUID 字符串
+        sync_remote: 本地构建成功后是否 rsync 到远程
 
     Returns:
         {"deployment_id": ..., "status": "success|failed", "duration_ms": ...}
     """
-    return _run_with_loop(deployment_id, retry_count=self.request.retries)
+    return _run_with_loop(deployment_id, retry_count=self.request.retries, sync_remote=sync_remote)
 
 
-def _run_with_loop(deployment_id: str, retry_count: int = 0) -> dict:
+def _run_with_loop(deployment_id: str, retry_count: int = 0, sync_remote: bool = True) -> dict:
     """在独立 event loop 中跑 async 任务 (避免 Celery worker 所在 loop 冲突)
     Celery 同步任务不能直接 await, 需要起独立 loop
     每个任务 dispose 旧 engine, 避免 asyncpg connection 跨 loop
@@ -563,7 +758,9 @@ def _run_with_loop(deployment_id: str, retry_count: int = 0) -> dict:
             loop.run_until_complete(engine.dispose())
         except Exception:
             pass
-        result = loop.run_until_complete(_run_publish_async(deployment_id, retry_count))
+        result = loop.run_until_complete(
+            _run_publish_async(deployment_id, retry_count, sync_remote=sync_remote)
+        )
         # 任务完成后再次 dispose, 主动关闭连接
         try:
             loop.run_until_complete(engine.dispose())
@@ -574,7 +771,7 @@ def _run_with_loop(deployment_id: str, retry_count: int = 0) -> dict:
         loop.close()
 
 
-async def _run_publish_async(deployment_id: str, retry_count: int = 0) -> dict:
+async def _run_publish_async(deployment_id: str, retry_count: int = 0, sync_remote: bool = True) -> dict:
     """真正的异步实现"""
     async with AsyncSessionLocal() as db:
         d = await db.get(Deployment, deployment_id)
@@ -627,6 +824,15 @@ async def _run_publish_async(deployment_id: str, retry_count: int = 0) -> dict:
             d.artifact_size = artifact_size
             d.build_log = _truncate_log(build_log)
             d.retry_count = retry_count
+            try:
+                from app.services.remote_deploy import sync_site_after_publish
+                await sync_site_after_publish(
+                    db, site, d, sync_remote=sync_remote, delete_extraneous=True,
+                )
+            except Exception as e:
+                logger.warning(f"remote sync error: {e}")
+                d.remote_sync_status = "failed"
+                d.remote_sync_log = str(e)[:2000]
             await db.commit()
             # P2.6: 回写 site.publish_status
             from app.services.publish_status import recompute_and_persist
@@ -929,9 +1135,20 @@ async def _run_publish_partial(deployment_id: str, scope: str) -> dict:
                 log_lines.extend(ml)
             except Exception as e:
                 log_lines.append(f"[media-inline] failed: {e}")
+            try:
+                _, ml = _rewrite_admin_urls(output_dir, site.slug)
+                log_lines.extend(ml)
+            except Exception as e:
+                log_lines.append(f"[url-rewrite] failed: {e}")
+            try:
+                _, ml = _rewrite_legacy_urls(output_dir)
+                log_lines.extend(ml)
+            except Exception as e:
+                log_lines.append(f"[legacy-url] failed: {e}")
             if site_assets:
                 copied = _copy_assets_to_public(list(site_assets), output_dir)
                 log_lines.append(f"[{scope}-publish] copied {copied}/{len(site_assets)} assets")
+            log_lines.extend(_ensure_root_favicon(output_dir))
 
             now = datetime.now(timezone.utc)
             d.status = "success"
@@ -941,6 +1158,15 @@ async def _run_publish_partial(deployment_id: str, scope: str) -> dict:
             d.artifact_path = output_dir
             d.artifact_size = total
             d.build_log = _truncate_log("\n".join(log_lines))
+            try:
+                from app.services.remote_deploy import sync_site_after_publish
+                await sync_site_after_publish(
+                    db, site, d, sync_remote=True, delete_extraneous=False,
+                )
+            except Exception as e:
+                logger.warning(f"remote sync partial error: {e}")
+                d.remote_sync_status = "failed"
+                d.remote_sync_log = str(e)[:2000]
             await db.commit()
 
             # P2.6: 重新计算并写回 sites.publish_status

@@ -630,6 +630,7 @@ async def preview_layout(
         site=site, cats=[], contents=[],
         base_url=_get_site_url(site),
         build_id="preview",
+        admin_urls=True,
     )
     # P3.7: 预览也要加载同 site 的所有模板 (HY_TEMPLATE 能跳)
     # P3.7+: 只加载启用的

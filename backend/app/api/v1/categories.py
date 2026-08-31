@@ -135,36 +135,6 @@ async def _is_descendant(
 
 # === 树构建 ===
 
-def _build_tree(items: list[Category]) -> list[dict]:
-    """从扁平列表构造树 (path 已排序)"""
-    nodes = {
-        c.id: {
-            "id": str(c.id),
-            "site_id": str(c.site_id),
-            "parent_id": str(c.parent_id) if c.parent_id else None,
-            "name": c.name,
-            "slug": c.slug,
-            "path": c.path,
-            "description": c.description,
-            "order_num": c.order_num,
-            "seo": c.seo or {},
-            "content_count": c.content_count,
-            "created_at": c.created_at.isoformat() if c.created_at else None,
-            "updated_at": c.updated_at.isoformat() if c.updated_at else None,
-            "children": [],
-        }
-        for c in items
-    }
-    roots: list[dict] = []
-    for c in items:
-        node = nodes[c.id]
-        if c.parent_id and c.parent_id in nodes:
-            nodes[c.parent_id]["children"].append(node)
-        else:
-            roots.append(node)
-    return roots
-
-
 def _to_read_dict(c: Category) -> dict:
     return {
         "id": str(c.id),
@@ -182,6 +152,22 @@ def _to_read_dict(c: Category) -> dict:
         "created_at": c.created_at.isoformat() if c.created_at else None,
         "updated_at": c.updated_at.isoformat() if c.updated_at else None,
     }
+
+
+def _build_tree(items: list[Category]) -> list[dict]:
+    """从扁平列表构造树 (path 已排序)"""
+    nodes = {
+        c.id: {**_to_read_dict(c), "children": []}
+        for c in items
+    }
+    roots: list[dict] = []
+    for c in items:
+        node = nodes[c.id]
+        if c.parent_id and c.parent_id in nodes:
+            nodes[c.parent_id]["children"].append(node)
+        else:
+            roots.append(node)
+    return roots
 
 
 # === Excel 批量导入 (栏目) helper ===

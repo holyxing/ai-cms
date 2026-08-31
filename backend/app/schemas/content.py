@@ -23,6 +23,7 @@ class ContentBase(BaseModel):
     body: str = ""  # Tiptap HTML/JSON
     status: Literal["draft", "pending", "published", "scheduled", "archived"] = "draft"
     scheduled_at: Optional[datetime] = None  # status=scheduled 时必填
+    published_at: Optional[datetime] = None  # 对外展示的发布日期，缺省为首次发布时的当前时间
     # P2.7: 主栏目 (一对一, 决定导航位置)
     # tag/series/format 仍走 taxonomy_ids (N:N, 互不冲突)
     category_id: Optional[uuid.UUID] = None
@@ -53,6 +54,7 @@ class ContentUpdate(BaseModel):
     body: Optional[str] = None
     status: Optional[Literal["draft", "pending", "published", "scheduled", "archived"]] = None
     scheduled_at: Optional[datetime] = None  # 传 null 表示取消计划
+    published_at: Optional[datetime] = None  # 展示用发布日期；草稿也可先填
     # P2.7: 传 null 表示取消主栏目
     category_id: Optional[uuid.UUID] = None
     taxonomy_ids: Optional[list[uuid.UUID]] = None

@@ -8,6 +8,7 @@ API:
 - DELETE /api/v1/sites/{site_id}/contents/{id}         软删除
 - POST   /api/v1/sites/{site_id}/contents/batch        批量动作 (P6.2 #16)
 - GET    /api/v1/sites/{site_id}/contents/{id}/versions  版本列表
+- POST   /api/v1/sites/{site_id}/contents/{id}/rollback  回滚到指定版本（写入新版本）
 - POST   /api/v1/sites/{site_id}/contents/{id}/lock    协作锁
 
 权限:
@@ -47,6 +48,10 @@ router = APIRouter(tags=["contents"])
 # 协作锁过期时间
 LOCK_TTL_MINUTES = 5
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+class ContentRollbackRequest(BaseModel):
+    target_version: int = Field(..., ge=1, description="要恢复的历史 version_num")
 
 
 # === 权限 helper ===
@@ -92,6 +97,25 @@ def _slugify_ascii(raw: str, fallback: str = "cat") -> str:
     s = re.sub(r"[^a-z0-9-]+", "-", pinyin)
     s = re.sub(r"-+", "-", s).strip("-")
     return s[:64] or fallback
+
+
+async def _assert_content_slug_available(
+    db: AsyncSession,
+    site_id: uuid.UUID,
+    slug: str,
+    *,
+    exclude_id: uuid.UUID | None = None,
+) -> None:
+    """文章 slug 站点内唯一；冲突时抛 409 而非等数据库 500。"""
+    q = select(Content.id).where(
+        Content.site_id == site_id,
+        Content.slug == slug,
+        Content.deleted_at.is_(None),
+    )
+    if exclude_id is not None:
+        q = q.where(Content.id != exclude_id)
+    if (await db.execute(q.limit(1))).scalar_one_or_none() is not None:
+        raise Conflict(f"slug '{slug}' 已被占用", code=40901)
 
 
 async def _ensure_valid_category_slug(
@@ -459,8 +483,8 @@ async def create_content(
         from_status="none", to_status=body.status,
         user=current_user, user_role=role, via_endpoint="create",
     )
-    pub_at = None
-    if body.status == "published":
+    pub_at = body.published_at
+    if body.status == "published" and pub_at is None:
         pub_at = datetime.now(timezone.utc)
 
     c = Content(
@@ -611,6 +635,10 @@ async def update_content(
     if "subtitle" in body.model_fields_set:
         c.subtitle = body.subtitle
     if body.slug is not None:
+        if body.slug != c.slug:
+            await _assert_content_slug_available(
+                db, site_id, body.slug, exclude_id=c.id,
+            )
         c.slug = body.slug
     if body.excerpt is not None:
         c.excerpt = body.excerpt
@@ -628,9 +656,11 @@ async def update_content(
             from_status=c.status, to_status=body.status,
             user=current_user, user_role=role, via_endpoint="patch",
         )
-        # published → 记录 published_at
+        # published → 若未单独传发布日期则记当前时间
         if body.status == "published" and c.status != "published":
-            c.published_at = datetime.now(timezone.utc)
+            if "published_at" not in body.model_fields_set or body.published_at is None:
+                if c.published_at is None:
+                    c.published_at = datetime.now(timezone.utc)
         # scheduled → 记录 scheduled_at (或清除)
         if body.status == "scheduled":
             if "scheduled_at" in body.model_fields_set and body.scheduled_at is not None:
@@ -649,6 +679,9 @@ async def update_content(
         elif body.scheduled_at is not None:
             # 不在 scheduled 态但想设时间 → 无意义, 报
             raise BadRequest("只有 scheduled 状态下才能设 scheduled_at")
+
+    if "published_at" in body.model_fields_set and body.published_at is not None:
+        c.published_at = body.published_at
 
     # P2.7: category_id 变更 (维护 content_count)
     if "category_id" in body.model_fields_set:
@@ -753,7 +786,13 @@ async def update_content(
             author_id=current_user.id, is_auto_save=False,
         )
         db.add(new_v)
-        await db.flush()
+        try:
+            await db.flush()
+        except IntegrityError as e:
+            await db.rollback()
+            if "uq_contents_site_slug" in str(e.orig):
+                raise Conflict(f"slug '{c.slug}' 已被占用", code=40901) from e
+            raise
         # 已发布文章保存后，静态发布读 published_version_id；须同步到最新版本
         if c.status == "published":
             c.published_version_id = new_v.id
@@ -847,6 +886,7 @@ async def _render_content_preview_html(
         contents=contents,
         base_url="",
         build_id="preview",
+        admin_urls=True,
     )
     factory.asset_urls = asset_urls
     factory.assets_by_category = assets_by_category
@@ -982,7 +1022,8 @@ async def publish_content(
         }, message="已是发布状态，已同步最新正文版本")
 
     c.status = "published"
-    c.published_at = datetime.now(timezone.utc)
+    if c.published_at is None:
+        c.published_at = datetime.now(timezone.utc)
     c.scheduled_at = None  # 清掉计划时间
     if latest_v:
         c.published_version_id = latest_v.id
@@ -1183,6 +1224,84 @@ async def list_versions(
         for v, u in vs
     ]
     return ok(out)
+
+
+@router.post("/sites/{site_id}/contents/{content_id}/rollback", response_model=None)
+async def rollback_content(
+    site_id: uuid.UUID,
+    content_id: uuid.UUID,
+    body: ContentRollbackRequest,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """把指定历史版本的标题/正文/摘要写入新版本（不删历史）。"""
+    site = await _get_site_or_404(db, site_id)
+    role = await _get_user_role(db, site, current_user)
+    if not _can_write(role):
+        raise Forbidden("无权修改")
+
+    c = await db.get(Content, content_id)
+    if not c or c.site_id != site_id or c.deleted_at:
+        raise NotFound("内容不存在")
+
+    target = (await db.execute(
+        select(ContentVersion).where(
+            ContentVersion.content_id == c.id,
+            ContentVersion.version_num == body.target_version,
+        )
+    )).scalar_one_or_none()
+    if target is None:
+        raise NotFound(f"v{body.target_version} 不存在")
+
+    last_v = (await db.execute(
+        select(ContentVersion)
+        .where(ContentVersion.content_id == c.id)
+        .order_by(ContentVersion.version_num.desc())
+        .limit(1)
+    )).scalar_one_or_none()
+    if last_v and last_v.version_num == target.version_num:
+        raise BadRequest("已是该版本，无需恢复")
+
+    next_num = (last_v.version_num + 1) if last_v else 1
+    c.title = target.title
+    c.excerpt = target.excerpt
+    new_v = ContentVersion(
+        content_id=c.id,
+        version_num=next_num,
+        title=target.title,
+        body=target.body,
+        excerpt=target.excerpt,
+        author_id=current_user.id,
+        is_auto_save=False,
+    )
+    db.add(new_v)
+    await db.flush()
+    if c.status == "published":
+        c.published_version_id = new_v.id
+    await db.commit()
+    await db.refresh(c)
+
+    author = await db.get(User, c.author_id)
+    return ok({
+        "id": str(c.id),
+        "site_id": str(c.site_id),
+        "author_id": str(c.author_id),
+        "author_name": author.name if author else None,
+        "title": c.title,
+        "subtitle": c.subtitle,
+        "slug": c.slug,
+        "excerpt": c.excerpt,
+        "cover_image": c.cover_image,
+        "banner_image": getattr(c, "banner_image", None),
+        "is_featured": bool(getattr(c, "is_featured", False)),
+        "body": target.body,
+        "status": c.status,
+        "published_at": c.published_at.isoformat() if c.published_at else None,
+        "scheduled_at": c.scheduled_at.isoformat() if c.scheduled_at else None,
+        "category_id": str(c.category_id) if c.category_id else None,
+        "version_num": next_num,
+        "restored_from": body.target_version,
+    }, message=f"已恢复 v{body.target_version}，当前为 v{next_num}")
 
 # === 永久删除 (P3.5 回收站) ===
 
@@ -1472,7 +1591,8 @@ async def batch_content_action(
                     user=current_user, user_role=role, via_endpoint="batch_publish",
                 )
                 c.status = "published"
-                c.published_at = now
+                if c.published_at is None:
+                    c.published_at = now
                 c.scheduled_at = None
                 results.append({"content_id": str(cid), "success": True})
                 succeeded += 1

@@ -525,7 +525,14 @@ def replace_site_name(html: str, site_name: str) -> str:
 
 
 def templatize_category(inner: str) -> str:
-    """把重复 article/卡片收成 HY_CONTENTS 循环"""
+    """把重复 article/卡片收成 HY_CONTENTS 循环，列表按发布日期倒序。"""
+    from app.services.layout_renderer import force_hy_contents_order_newest
+
+    html = _templatize_category_inner(inner)
+    return force_hy_contents_order_newest(html)
+
+
+def _templatize_category_inner(inner: str) -> str:
     arts = list(ARTICLE_RE.finditer(inner))
     if len(arts) >= 2:
         first = arts[0].group(0)
@@ -541,7 +548,6 @@ def templatize_category(inner: str) -> str:
             f'<HY_CONTENTS_PAGINATION _show_numbers="true" />'
         )
         return inner[:start] + wrapped + inner[end:]
-    # 无 article 时在末尾补标准列表
     return (
         inner
         + '\n<HY_CONTENTS _limit="12" _order="newest">\n'

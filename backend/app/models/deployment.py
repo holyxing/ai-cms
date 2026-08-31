@@ -89,6 +89,12 @@ class Deployment(Base, TimestampMixin):
     # category/content 发布时填, 对应 categories.id / contents.id
     # (site 发布时为 null)
 
+    # 远程 SSH 同步（rsync）
+    remote_sync_status: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    # pending / syncing / success / failed / skipped
+    remote_sync_log: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    remote_sync_duration_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
     # 关系
     site: Mapped["Site"] = relationship("Site", foreign_keys=[site_id])
     theme_version: Mapped[Optional["ThemeVersion"]] = relationship(

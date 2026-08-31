@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     ca-certificates \
     gnupg \
+    openssh-client \
+    rsync \
+    sshpass \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装 Node.js 25.8.1 (P2 SSG 构建需要, D1 决策)

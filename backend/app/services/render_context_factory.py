@@ -157,6 +157,8 @@ def content_to_ctx(content, cat=None, tags: Optional[list] = None) -> Optional[C
     meta_raw = _get(content, "metadata_", None)
     if not isinstance(meta_raw, dict):
         meta_raw = {}
+    _created = _to_iso(_get(content, "created_at", None))
+    _updated = _to_iso(_get(content, "updated_at", None))
     ctx = ContentCtx(
         id=str(_get(content, "id", "")),
         title=_get(content, "title", ""),
@@ -181,6 +183,8 @@ def content_to_ctx(content, cat=None, tags: Optional[list] = None) -> Optional[C
         ),
         # P3.8.9: published_at 兑底 (老 seed / 异常状态可能为 None)
         published_at=_pub_at,
+        created_at=_created,
+        updated_at=_updated,
         # P3.8.9+: date_short 兑底 (老 seed / 异常状态可能为 None) — YYYY-MM-DD
         date_short=_pub_at[:10] if _pub_at else "",
         # P3.8.9+++: date_year 兑底 — YYYY
@@ -242,6 +246,7 @@ class RenderContextFactory:
         base_url: str = "",
         build_id: str = "",
         now: Optional[datetime] = None,
+        admin_urls: bool = False,
     ) -> None:
         """
         tags_by_content: {content_id_str: [tag_dict, ...]}
@@ -295,9 +300,9 @@ class RenderContextFactory:
                         expected_prefix = f"/{parent.slug}/"
                         if not ctx.url.startswith(expected_prefix):
                             ctx.url = f"/{parent.slug}{ctx.url}"
-        # 给所有 URL 加上 /sites/{site_slug} 前缀，确保链接在管理端访问时正确
+        # 管理端预览才加 /sites/{slug} 前缀；静态发布走站点根相对路径
         site_slug = _get(site, "slug", "") or ""
-        if site_slug:
+        if admin_urls and site_slug:
             url_prefix = f"/sites/{site_slug}"
             for cat_ctx in self.cats_data:
                 if cat_ctx.url and not cat_ctx.url.startswith(url_prefix):

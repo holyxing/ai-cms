@@ -443,6 +443,37 @@ def test_E6_hy_site_link_relative_depth():
     assert 'href="index.html"' in f2.html
 
 
+def test_E7_hy_item_url_relative_on_home():
+    """首页 HY_ITEM_URL 输出相对路径（无 leading /），本地与远程站点均可访问"""
+    from datetime import datetime, timezone
+
+    @dataclass
+    class NewsItem:
+        id: str = "n1"
+        title: str = "行业新闻"
+        slug: str = "demo-news"
+        url: str = "/xinwenzixun/hangyedongtai/demo-news.html"
+        excerpt: str = ""
+        cover_url: str = ""
+        published_at: datetime = field(default_factory=lambda: datetime(2026, 6, 1, tzinfo=timezone.utc))
+        view_count: int = 0
+        category_id: str = "c1"
+        cat_slug: str = "hangyedongtai"
+        cat_name: str = "行业动态"
+        cat_url: str = "/xinwenzixun/hangyedongtai/"
+
+    site = Site()
+    cat = Cat(id="c1", slug="hangyedongtai", parent_id="p1")
+    parent = Cat(id="p1", slug="xinwenzixun")
+    item = NewsItem()
+    factory = RenderContextFactory(site=site, cats=[parent, cat], contents=[item])
+    layouts = [make_layout("home", '<HY_CONTENTS _limit="1"><a href="<HY_ITEM_URL />"><HY_ITEM_TITLE /></a></HY_CONTENTS>')]
+    r = PageRenderer(factory, layouts=layouts)
+    f = r.home()
+    assert 'href="xinwenzixun/hangyedongtai/demo-news.html"' in f.html
+    assert 'href="/xinwenzixun/' not in f.html
+
+
 # ===========================================================================
 # P3.6.5+: 首页块渲染 (从 site.settings 读 hero/stats/products/cta)
 # ===========================================================================

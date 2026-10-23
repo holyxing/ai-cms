@@ -1,12 +1,16 @@
 # AI-CMS
 
-**AI 协作式多站点内容管理与静态发布平台（SSG）。**
+**为多站点内容运营而生的 AI 原生 CMS——一个后台，管你所有的站。**
 
-在后台用 AI 辅助写作与 HTML/块编辑，统一管理多个站点，并发布为 Astro 静态站，便于 CDN 分发。
+后台内置 AI 写作助手，多个站点统一管理，发布为 Astro 静态站、CDN 直达；自托管部署，内容和 API Key 都留在你自己的服务器上。
+
+*适合内容团队、多品牌站点运营者，以及受够了"一个站装一套 CMS"的团队。*
 
 [English README](./README.md) · [贡献指南](./CONTRIBUTING.md) · [安全说明](./SECURITY.md) · [许可证](./LICENSE)
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+
+![AI 助手](./docs/images/ai-assistant.png)
 
 ---
 
@@ -20,6 +24,16 @@
 | 多品牌多套后台 | 一个后台管理多个站点 |
 
 > 自托管开源：数据与 **API Key 留在你自己的环境**，不要提交到 Git。
+
+### 与主流 CMS 对比
+
+| | AI-CMS | WordPress | Ghost | Strapi |
+| --- | --- | --- | --- | --- |
+| 后台内置 AI 写作 | ✅ 原生内置 | 靠插件 | 功能有限 | 靠插件 |
+| 多站点一个后台 | ✅ 原生支持 | 需多站点模式 | 一套一站 | ✗ |
+| 静态站输出（SSG） | ✅ Astro | ✗ 默认动态 | ✗ 动态 | 仅 Headless |
+| 是否需要前端团队 | 不需要 | 不需要 | 不需要 | 需要 |
+| 自托管 & 开源 | ✅ Apache-2.0 | ✅ | ✅ | ✅ |
 
 ---
 
@@ -35,6 +49,15 @@
 ---
 
 ## 快速开始
+
+**简版**（详细步骤见下文）：
+
+```bash
+git clone https://github.com/holyxing/ai-cms.git
+cd ai-cms
+cp deploy/.env.example deploy/.env
+./scripts/start.sh        # 然后打开 http://localhost/admin
+```
 
 ### 环境要求
 

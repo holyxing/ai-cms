@@ -1,13 +1,17 @@
 # AI-CMS
 
-**AI-assisted multi-site CMS with static publishing (SSG).**
+**The AI-native CMS for running many sites from one admin.**
 
-Build content with an AI writing assistant and a block/HTML editor, manage multiple sites in one admin, and publish to Astro static sites for CDN-friendly delivery.
+Write with a built-in AI assistant, manage every site in a single backend, and publish to fast Astro static sites — self-hosted, so your content and your API keys never leave your server.
+
+*Built for content teams, multi-brand site operators, and agencies tired of one heavy CMS install per site.*
 
 [中文说明](./README.zh-CN.md) · [Contributing](./CONTRIBUTING.md) · [Security](./SECURITY.md) · [License](./LICENSE)
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 [![Stack](https://img.shields.io/badge/stack-FastAPI%20%7C%20React%20%7C%20Astro-0f172a)](#tech-stack)
+
+![AI assistant](./docs/images/ai-assistant.png)
 
 ---
 
@@ -21,6 +25,16 @@ Build content with an AI writing assistant and a block/HTML editor, manage multi
 | Multi-brand sites = many backends | One admin, many sites |
 
 > Not a hosted SaaS clone — **self-hosted**, open source, your data & your API keys stay with you.
+
+### How it compares
+
+| | AI-CMS | WordPress | Ghost | Strapi |
+| --- | --- | --- | --- | --- |
+| AI writing in the admin | ✅ Built in | Via plugins | Limited | Via plugins |
+| Many sites, one admin | ✅ Native | Multisite setup | One site per install | ✗ |
+| Static output (SSG) | ✅ Astro | ✗ Dynamic by default | ✗ Dynamic | Headless only |
+| Front-end team required | No | No | No | Yes |
+| Self-hosted & open source | ✅ Apache-2.0 | ✅ | ✅ | ✅ |
 
 ---
 
@@ -36,6 +50,15 @@ Build content with an AI writing assistant and a block/HTML editor, manage multi
 ---
 
 ## Quick start
+
+**The short version** (full walkthrough below):
+
+```bash
+git clone https://github.com/holyxing/ai-cms.git
+cd ai-cms
+cp deploy/.env.example deploy/.env
+./scripts/start.sh        # then open http://localhost/admin
+```
 
 ### Requirements
 

@@ -1,3 +1,5 @@
+![AI-CMS](./cover.png)
+
 # AI-CMS
 
 **The AI-native CMS for running many sites from one admin.**
